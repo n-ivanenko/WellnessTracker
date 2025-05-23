@@ -10,5 +10,7 @@ namespace WellnessTracker.Models
         public DbSet<CalorieLogEntry> CalorieLogEntries { get; set; }
         public DbSet<SleepLogEntry> SleepLogEntries { get; set; }
         public DbSet<HabitEntry> HabitEntries { get; set; }
+        public DbSet<HabitCompletion> HabitCompletions { get; set; }
+
     }
 }

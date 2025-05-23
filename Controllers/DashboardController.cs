@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WellnessTracker.Models;
 using WellnessTracker.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace WellnessTracker.Controllers
 {
-    public class HomeController : Controller
+    public class DashboardController : Controller
     {
         private readonly AppDbContext _context;
 
-        public HomeController(AppDbContext context)
+        public DashboardController(AppDbContext context)
         {
             _context = context;
         }
