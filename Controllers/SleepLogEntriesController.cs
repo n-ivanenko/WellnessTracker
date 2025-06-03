@@ -18,6 +18,25 @@ namespace WellnessTracker.Controllers
             _context = context;
         }
 
+        public IActionResult SleepSummary(DateTime? date)
+        {
+            var selectedDate = date ?? DateTime.Today;
+
+            string? userId = null;
+            if (User.Identity.IsAuthenticated)
+            {
+                userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
+
+            var totalSleep = _context.SleepLogEntries
+                .Where(s => s.Date.Date == selectedDate.Date && (userId == null || s.UserId == userId))
+                .Sum(s => (double?)s.HoursSlept) ?? 0;
+
+            ViewBag.SelectedDate = selectedDate;
+            ViewBag.TotalSleepHours = totalSleep;
+
+            return View();
+        }
         // GET: SleepLogEntries
         public async Task<IActionResult> Index()
         {

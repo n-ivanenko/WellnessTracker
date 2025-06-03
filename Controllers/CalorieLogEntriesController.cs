@@ -18,6 +18,22 @@ namespace WellnessTracker.Controllers
             _context = context;
         }
 
+        public IActionResult CalorieSummary(DateTime? date)
+        {
+            var selectedDate = date ?? DateTime.Today;
+
+            var userId = User.Identity.IsAuthenticated ? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value : null;
+
+            var totalCalories = _context.CalorieLogEntries
+                .Where(c => c.Date.Date == selectedDate.Date && (userId == null || c.UserId == userId))
+                .Sum(c => (double?)c.Calories) ?? 0; // nullable to avoid exceptions if no results
+
+            ViewBag.SelectedDate = selectedDate;
+            ViewBag.TotalCalories = totalCalories;
+
+            return View();
+        }
+
         // GET: CalorieLogEntries
         public async Task<IActionResult> Index()
         {

@@ -9,19 +9,44 @@ using WellnessTracker.Models;
 
 namespace WellnessTracker.Controllers
 {
-    public class WorkoutEntriesController : Controller
+    public class WorkoutLogEntriesController : Controller
     {
         private readonly AppDbContext _context;
 
-        public WorkoutEntriesController(AppDbContext context)
+        public WorkoutLogEntriesController(AppDbContext context)
         {
             _context = context;
         }
 
+        public IActionResult WorkoutSummary(DateTime? date)
+        {
+            var selectedDate = date ?? DateTime.Today;
+
+            string? userId = null;
+            if (User.Identity.IsAuthenticated)
+            {
+                userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
+
+            var logs = _context.WorkoutLogEntries
+                .Where(w => w.Date.Date == selectedDate.Date && (userId == null || w.UserId == userId))
+                .ToList();
+
+            double totalDuration = logs.Sum(w => w.Duration);
+            double totalCaloriesBurned = logs.Sum(w => w.CaloriesBurned);
+
+            ViewBag.SelectedDate = selectedDate;
+            ViewBag.TotalWorkoutHours = totalDuration;
+            ViewBag.TotalCaloriesBurned = totalCaloriesBurned;
+
+            return View();
+        }
+
+
         // GET: WorkoutEntries
         public async Task<IActionResult> Index()
         {
-            return View(await _context.WorkoutEntries.ToListAsync());
+            return View(await _context.WorkoutLogEntries.ToListAsync());
         }
 
         // GET: WorkoutEntries/Details/5
@@ -32,7 +57,7 @@ namespace WellnessTracker.Controllers
                 return NotFound();
             }
 
-            var workoutEntry = await _context.WorkoutEntries
+            var workoutEntry = await _context.WorkoutLogEntries
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (workoutEntry == null)
             {
@@ -53,7 +78,7 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,ExerciseName,Duration,CaloriesBurned,Notes")] WorkoutEntry workoutEntry)
+        public async Task<IActionResult> Create([Bind("Id,Date,ExerciseName,Duration,CaloriesBurned,Notes")] WorkoutLogEntry workoutEntry)
         {
             if (ModelState.IsValid)
             {
@@ -72,7 +97,7 @@ namespace WellnessTracker.Controllers
                 return NotFound();
             }
 
-            var workoutEntry = await _context.WorkoutEntries.FindAsync(id);
+            var workoutEntry = await _context.WorkoutLogEntries.FindAsync(id);
             if (workoutEntry == null)
             {
                 return NotFound();
@@ -85,7 +110,7 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,ExerciseName,Duration,CaloriesBurned,Notes")] WorkoutEntry workoutEntry)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,ExerciseName,Duration,CaloriesBurned,Notes")] WorkoutLogEntry workoutEntry)
         {
             if (id != workoutEntry.Id)
             {
@@ -123,7 +148,7 @@ namespace WellnessTracker.Controllers
                 return NotFound();
             }
 
-            var workoutEntry = await _context.WorkoutEntries
+            var workoutEntry = await _context.WorkoutLogEntries
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (workoutEntry == null)
             {
@@ -138,10 +163,10 @@ namespace WellnessTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var workoutEntry = await _context.WorkoutEntries.FindAsync(id);
+            var workoutEntry = await _context.WorkoutLogEntries.FindAsync(id);
             if (workoutEntry != null)
             {
-                _context.WorkoutEntries.Remove(workoutEntry);
+                _context.WorkoutLogEntries.Remove(workoutEntry);
             }
 
             await _context.SaveChangesAsync();
@@ -150,7 +175,7 @@ namespace WellnessTracker.Controllers
 
         private bool WorkoutEntryExists(int id)
         {
-            return _context.WorkoutEntries.Any(e => e.Id == id);
+            return _context.WorkoutLogEntries.Any(e => e.Id == id);
         }
     }
 }

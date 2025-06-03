@@ -9,8 +9,14 @@ namespace WellnessTracker.Models
         [Required]
         public string HabitName { get; set; } 
         [Required]
+
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime StartDate { get; set; } 
         [Required]
+
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime TargetDate { get; set; } 
         public bool IsCompleted { get; set; } 
         [MaxLength(1000)]

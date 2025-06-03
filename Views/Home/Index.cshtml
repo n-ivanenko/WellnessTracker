@@ -1,9 +1,53 @@
 ﻿@{
     ViewData["Title"] = "Dashboard";
+    var date = ViewBag.SelectedDate;
 }
 
 <h2>Dashboard</h2>
 
+<form method="get" class="mb-4">
+    <label for="date">Select a date:</label>
+    <input type="date" name="date" id="date" value="@date" />
+    <button type="submit" class="btn btn-primary">Go</button>
+</form>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Calories Consumed</h5>
+                <p class="card-text"><strong>@ViewBag.TotalCalories</strong> kcal</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Sleep Duration</h5>
+                <p class="card-text"><strong>@ViewBag.TotalSleep</strong> hours</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Workout Hours</h5>
+                <p class="card-text"><strong>@ViewBag.TotalWorkoutHours</strong> hours</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Workout Calories Burned</h5>
+                <p class="card-text"><strong>@ViewBag.TotalWorkoutCalories</strong> kcal</p>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-4 mb-3">
         <a href="@Url.Action("Index", "HabitEntries")" class="text-decoration-none">
@@ -33,7 +77,7 @@
     </div>
 
     <div class="col-md-4 mb-3">
-        <a href="@Url.Action("Index", "WorkoutEntries")" class="text-decoration-none">
+        <a href="@Url.Action("Index", "WorkoutLogEntries")" class="text-decoration-none">
             <div class="card p-3 shadow-sm">
                 <h4>Workout Tracker</h4>
                 <p>View & add workout entries</p>

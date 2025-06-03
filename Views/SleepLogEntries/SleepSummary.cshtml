@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Sleep Summary";
+    var totalSleep = ViewBag.TotalSleepHours;
+    var selectedDate = ((DateTime)ViewBag.SelectedDate).ToString("yyyy-MM-dd");
+}
+
+<h2>Sleep Summary for @selectedDate</h2>
+
+<p>Total Sleep: <strong>@totalSleep</strong> hours</p>
+
+<form method="get">
+    <label for="date">Choose a date:</label>
+    <input type="date" name="date" id="date" value="@selectedDate" />
+    <button type="submit">View</button>
+</form>

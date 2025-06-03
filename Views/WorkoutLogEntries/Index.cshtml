@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WellnessTracker.Models.WorkoutEntry>
+﻿@model IEnumerable<WellnessTracker.Models.WorkoutLogEntry>
 
 @{
     ViewData["Title"] = "Index";
@@ -8,6 +8,10 @@
 
 <p>
     <a asp-action="Create">Create New</a>
+    <a href="@Url.Action("WorkoutSummary", "WorkoutLogEntries")" class="btn btn-dark">
+        View Workout Summary
+    </a>
+
 </p>
 <table class="table">
     <thead>

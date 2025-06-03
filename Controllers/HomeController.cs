@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using WellnessTracker.Models;
-using WellnessTracker.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims;
@@ -18,7 +17,7 @@ namespace WellnessTracker.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? date)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var today = DateTime.Today;
@@ -37,7 +36,7 @@ namespace WellnessTracker.Controllers
                 .Where(c => c.UserId == userId && c.Date.Date == today)
                 .SumAsync(c => (double?)c.Calories) ?? 0;
 
-            var totalWorkoutDuration = await _context.WorkoutEntries
+            var totalWorkoutDuration = await _context.WorkoutLogEntries
                 .Where(w => w.UserId == userId && w.Date.Date == today)
                 .SumAsync(w => (int?)w.Duration) ?? 0;
 
@@ -48,17 +47,36 @@ namespace WellnessTracker.Controllers
             var totalHabits = await _context.HabitEntries
                 .Where(h => h.UserId == userId)
                 .CountAsync();
+            var selectedDate = date ?? DateTime.Today;
 
-            var viewModel = new DashboardViewModel
+            string? UserId = null;
+            if (User.Identity.IsAuthenticated)
             {
-                MoodToday = mood ?? "Not logged",
-                SleepToday = sleep ?? "Not logged",
-                CalorieToday = $"{totalCalories} kcal",
-                WorkoutToday = $"{totalWorkoutDuration} mins",
-                HabitToday = $"{totalHabitsCompleted} of {totalHabits} completed"
-            };
+                userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
 
-            return View(viewModel);
+            //var totalCalories = _context.CalorieLogEntries
+            //    .Where(c => c.Date.Date == selectedDate.Date && (userId == null || c.UserId == userId))
+            //    .Sum(c => (double?)c.Calories) ?? 0;
+
+            var totalSleep = _context.SleepLogEntries
+                .Where(s => s.Date.Date == selectedDate.Date && (userId == null || s.UserId == userId))
+                .Sum(s => (double?)s.HoursSlept) ?? 0;
+
+            var workouts = _context.WorkoutLogEntries
+                .Where(w => w.Date.Date == selectedDate.Date && (userId == null || w.UserId == userId))
+                .ToList();
+
+            var totalWorkoutHours = workouts.Sum(w => w.Duration);
+            var totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
+
+            ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");
+            ViewBag.TotalCalories = totalCalories;
+            ViewBag.TotalSleep = totalSleep;
+            ViewBag.TotalWorkoutHours = totalWorkoutHours;
+            ViewBag.TotalWorkoutCalories = totalWorkoutCalories;
+
+            return View();
         }
 
     }
