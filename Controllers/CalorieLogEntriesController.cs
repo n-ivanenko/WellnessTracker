@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -34,11 +35,27 @@ namespace WellnessTracker.Controllers
             return View();
         }
 
+
         // GET: CalorieLogEntries
         public async Task<IActionResult> Index()
         {
-            return View(await _context.CalorieLogEntries.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var entries = await _context.CalorieLogEntries
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.Date)
+                .ToListAsync();
+
+            var userGoal = await _context.UserGoals
+                .Where(g => g.UserId == userId)
+                .Select(g => g.CalorieGoal)
+                .FirstOrDefaultAsync();
+
+            ViewBag.CalorieGoal = userGoal;
+
+            return View(entries);
         }
+
 
         // GET: CalorieLogEntries/Details/5
         public async Task<IActionResult> Details(int? id)

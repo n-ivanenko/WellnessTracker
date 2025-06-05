@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WellnessTracker.Models;
 
@@ -11,9 +12,11 @@ using WellnessTracker.Models;
 namespace WellnessTracker.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250605104207_AddUserGoalTable")]
+    partial class AddUserGoalTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,17 +381,17 @@ namespace WellnessTracker.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("CalorieGoal")
+                    b.Property<double?>("DailyCalorieGoal")
                         .HasColumnType("float");
 
-                    b.Property<double?>("SleepGoal")
+                    b.Property<double?>("SleepGoalHours")
                         .HasColumnType("float");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("WorkoutGoal")
+                    b.Property<int?>("WorkoutGoalMinutes")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace WellnessTracker.Areas.Identity.Pages.Account
 {
+    [AllowAnonymous]
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
