@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,6 +19,32 @@ namespace WellnessTracker.Controllers
             _context = context;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> MarkComplete(int habitEntryId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var today = DateTime.Today;
+
+            var existing = await _context.HabitCompletions
+                .FirstOrDefaultAsync(hc => hc.HabitEntryId == habitEntryId
+                                           && hc.UserId == userId
+                                           && hc.Date == today);
+
+            if (existing == null)
+            {
+                var completion = new HabitCompletion
+                {
+                    HabitEntryId = habitEntryId,
+                    Date = today,
+                    IsCompleted = true,
+                    UserId = userId
+                };
+                _context.HabitCompletions.Add(completion);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Index", "HabitEntries");
+        }
         // GET: HabitCompletions
         public async Task<IActionResult> Index()
         {

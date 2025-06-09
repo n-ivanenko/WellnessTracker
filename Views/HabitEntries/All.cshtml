@@ -1,0 +1,34 @@
+﻿@model IEnumerable<WellnessTracker.Models.HabitEntry>
+
+@{
+    ViewData["Title"] = "All Habits";
+}
+
+<h2>All Habits</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Habit Name</th>
+            <th>Notes</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var habit in Model)
+        {
+            <tr>
+                <td>@habit.HabitName</td>
+                <td>@habit.Notes</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@habit.Id" class="btn btn-sm btn-primary">Edit</a>
+                    <form asp-action="Delete" asp-route-id="@habit.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary mt-2">Back to Weekly Tracker</a>

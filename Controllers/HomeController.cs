@@ -63,7 +63,6 @@ namespace WellnessTracker.Controllers
 
             var totalWorkoutHours = workouts.Sum(w => w.Duration);
             var totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
-            // Fetch User Goals
             var userGoals = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
             ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");

@@ -34,15 +34,42 @@ namespace WellnessTracker.Controllers
 
             return View();
         }
+        // GET: CalorieLogEntries/SetGoal
+        [HttpGet]
+        public async Task<IActionResult> SetGoal()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
+            return View(userGoal ?? new UserGoal());
+        }
 
-        // GET: CalorieLogEntries
+        // POST: CalorieLogEntries/SetGoal
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetGoal(UserGoal userGoal)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            userGoal.UserId = userId;
+
+            ModelState.Remove("UserId");
+
+            if (ModelState.IsValid)
+            {
+                _context.Add(userGoal);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "CalorieLogEntries");
+            }
+
+            return View(userGoal);
+        }
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var today = DateTime.Today;
 
             var entries = await _context.CalorieLogEntries
-                .Where(c => c.UserId == userId)
+                .Where(c => c.UserId == userId && c.Date.Date == today)
                 .OrderByDescending(c => c.Date)
                 .ToListAsync();
 
@@ -51,11 +78,36 @@ namespace WellnessTracker.Controllers
                 .Select(g => g.CalorieGoal)
                 .FirstOrDefaultAsync();
 
+            var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday start
+            var weekEnd = weekStart.AddDays(6);
+
+            var weekEntries = entries
+                .Where(e => e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
+                .GroupBy(e => e.Date.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(e => e.Calories));
+
+            var weeklyAverage = weekEntries.Values.Count > 0 ? weekEntries.Values.Average() : 0;
+
+            var todayCalories = await _context.CalorieLogEntries
+                .Where(c => c.UserId == userId && c.Date.Date == today)
+                .SumAsync(c => (double?)c.Calories) ?? 0;
+
+            var weeklyCalories = new Dictionary<string, double>();
+            for (int i = 0; i < 7; i++)
+            {
+                var date = weekStart.AddDays(i).Date;
+                var label = date.ToString("ddd");
+                weeklyCalories[label] = weekEntries.ContainsKey(date) ? weekEntries[date] : 0;
+            }
+
+            ViewBag.WeeklyCalories = weeklyCalories;
+            ViewBag.WeeklyAverageCalories = weeklyAverage;
             ViewBag.CalorieGoal = userGoal;
+            ViewBag.TodayCalories = todayCalories;
+            ViewBag.CaloriesPercentage = (userGoal > 0) ? Math.Min(100, (int)((todayCalories / userGoal) * 100)) : 0;
 
             return View(entries);
         }
-
 
         // GET: CalorieLogEntries/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -90,6 +142,9 @@ namespace WellnessTracker.Controllers
         {
             if (ModelState.IsValid)
             {
+                calorieLogEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                calorieLogEntry.Date = DateTime.Today;
+
                 _context.Add(calorieLogEntry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

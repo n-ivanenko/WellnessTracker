@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,6 +18,24 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        public IActionResult MoodGraphData()
+        {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var moodData = _context.MoodEntries
+                .Where(m => m.UserId == userId)
+                .OrderBy(m => m.Date)
+                .Select(m => new
+                {
+                    date = m.Date.ToString("yyyy-MM-dd"),
+                    moodRating = m.MoodRating
+                })
+                .ToList();
+
+            return Json(moodData);
+        }
+
 
         // GET: MoodEntries
         public async Task<IActionResult> Index()
@@ -53,16 +72,18 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,MoodRating,Notes")] MoodEntry moodEntry)
+        public async Task<IActionResult> Create([Bind("Date,MoodRating,Notes")] MoodEntry moodEntry)
         {
             if (ModelState.IsValid)
             {
+                moodEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
                 _context.Add(moodEntry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(moodEntry);
         }
+
 
         // GET: MoodEntries/Edit/5
         public async Task<IActionResult> Edit(int? id)

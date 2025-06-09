@@ -1,59 +1,45 @@
-﻿@model IEnumerable<WellnessTracker.Models.HabitEntry>
-
+﻿@model List<WellnessTracker.Models.HabitEntry>
 @{
-    ViewData["Title"] = "Index";
+    var weekDates = (List<DateTime>)ViewBag.WeekDates;
+    var completions = (List<WellnessTracker.Models.HabitCompletion>)ViewBag.Completions;
 }
 
-<h1>Index</h1>
+<form asp-action="SubmitHabitCompletions" method="post">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Habit</th>
+                @foreach (var day in weekDates)
+                {
+                    <th>@Html.Raw(day.ToString("ddd<br>MM/dd"))</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var habit in Model)
+            {
+                <tr>
+                    <td>@habit.HabitName</td>
+                    @foreach (var date in weekDates)
+                    {
+                        var completed = completions.Any(c =>
+                        c.HabitEntryId == habit.Id &&
+                        c.Date.Date == date.Date &&
+                        c.IsCompleted);
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.HabitName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TargetDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsCompleted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.HabitName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TargetDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsCompleted)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                        <td>
+                            <input type="checkbox"
+                                   name="completions"
+                                   value="@($"{habit.Id}|{date:yyyy-MM-dd}")"
+                            @(completed ? "checked" : "") />
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+<a asp-controller="HabitEntries" asp-action="Create" class="btn btn-success mb-3">+ Add New Habit</a>
+<a asp-action="All" class="btn btn-outline-primary mb-3">Edit Habits</a>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -21,7 +22,113 @@ namespace WellnessTracker.Controllers
         // GET: HabitEntries
         public async Task<IActionResult> Index()
         {
-            return View(await _context.HabitEntries.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            DateTime startOfWeek = DateTime.Today;
+            while (startOfWeek.DayOfWeek != DayOfWeek.Monday)
+            {
+                startOfWeek = startOfWeek.AddDays(-1);
+            }
+            var weekDates = Enumerable.Range(0, 7)
+                .Select(offset => startOfWeek.AddDays(offset))
+                .ToList();
+
+            var habits = await _context.HabitEntries
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+
+            var habitIds = habits.Select(h => h.Id).ToList();
+
+            var completions = await _context.HabitCompletions
+                .Where(c => habitIds.Contains(c.HabitEntryId)
+                    && c.UserId == userId
+                    && c.Date >= startOfWeek
+                    && c.Date < startOfWeek.AddDays(7))
+                .ToListAsync();
+
+            ViewBag.WeekDates = weekDates;
+            ViewBag.Completions = completions;
+
+            return View(habits);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitHabitCompletions(List<string> completions)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Parse the submitted completions (habitId|date)
+            var submitted = completions
+                .Select(c => c.Split('|'))
+                .Select(parts => new
+                {
+                    HabitEntryId = int.Parse(parts[0]),
+                    Date = DateTime.Parse(parts[1])
+                })
+                .ToList();
+
+            // Get all habits for the current user for the current week
+            DateTime startOfWeek = DateTime.Today;
+            while (startOfWeek.DayOfWeek != DayOfWeek.Monday)
+            {
+                startOfWeek = startOfWeek.AddDays(-1);
+            }
+
+            var endOfWeek = startOfWeek.AddDays(7);
+
+            var userCompletions = await _context.HabitCompletions
+                .Where(c => c.UserId == userId &&
+                            c.Date >= startOfWeek &&
+                            c.Date < endOfWeek)
+                .ToListAsync();
+
+            foreach (var habit in submitted)
+            {
+                var existing = userCompletions.FirstOrDefault(c =>
+                    c.HabitEntryId == habit.HabitEntryId &&
+                    c.Date.Date == habit.Date.Date);
+
+                if (existing == null)
+                {
+                    _context.HabitCompletions.Add(new HabitCompletion
+                    {
+                        HabitEntryId = habit.HabitEntryId,
+                        Date = habit.Date.Date,
+                        IsCompleted = true,
+                        UserId = userId
+                    });
+                }
+                else if (!existing.IsCompleted)
+                {
+                    existing.IsCompleted = true;
+                    _context.Update(existing);
+                }
+            }
+
+            foreach (var existing in userCompletions)
+            {
+                bool stillChecked = submitted.Any(s =>
+                    s.HabitEntryId == existing.HabitEntryId &&
+                    s.Date.Date == existing.Date.Date);
+
+                if (!stillChecked && existing.IsCompleted)
+                {
+                    existing.IsCompleted = false;
+                    _context.Update(existing);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+        public async Task<IActionResult> All()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var habits = await _context.HabitEntries
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+
+            return View(habits);
         }
 
         // GET: HabitEntries/Details/5
@@ -53,10 +160,12 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,HabitName,StartDate,TargetDate,IsCompleted,Notes")] HabitEntry habitEntry)
+        public async Task<IActionResult> Create([Bind("Id,HabitName,Notes")] HabitEntry habitEntry)
         {
             if (ModelState.IsValid)
             {
+                habitEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
                 _context.Add(habitEntry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -85,7 +194,7 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,HabitName,StartDate,TargetDate,IsCompleted,Notes")] HabitEntry habitEntry)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,HabitName,Notes")] HabitEntry habitEntry)
         {
             if (id != habitEntry.Id)
             {

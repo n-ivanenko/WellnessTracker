@@ -1,0 +1,16 @@
+﻿@model WellnessTracker.Models.UserGoal
+@Html.AntiForgeryToken()
+
+<form asp-action="SetGoal" method="post">
+    <div class="form-group">
+        <label asp-for="SleepGoal"></label>
+        <input asp-for="SleepGoal" class="form-control" />
+        <span asp-validation-for="SleepGoal" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

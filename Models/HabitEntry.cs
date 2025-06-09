@@ -8,18 +8,6 @@ namespace WellnessTracker.Models
         public int Id { get; set; }
         [Required]
         public string HabitName { get; set; } 
-        [Required]
-
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        public DateTime StartDate { get; set; } 
-        [Required]
-
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        public DateTime TargetDate { get; set; } 
-        public bool IsCompleted { get; set; } 
-        [MaxLength(1000)]
         public string? Notes { get; set; }
         public string? UserId { get; set; }
     }

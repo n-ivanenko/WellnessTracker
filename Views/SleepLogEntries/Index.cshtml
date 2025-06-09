@@ -3,9 +3,81 @@
 @{
     ViewData["Title"] = "Index";
 }
+<h1>Sleep Log Entries</h1>
+@{
+    var goal = ViewBag.SleepGoal as double?;
+    var total = ViewBag.TodaySleep as double? ?? 0;
+    var sleepStatus = ViewBag.SleepStatus as string ?? "No Goal Set";
+    var percentage = ViewBag.SleepPercentage as int? ?? 0;
+ 
+}
 
-<h1>Index</h1>
+@if (total == 0 && (ViewBag.WeeklySleep == null || ((IDictionary<string, double>)ViewBag.WeeklySleep).Values.All(v => v == 0)))
+{
+    <div class="alert alert-warning">
+        No sleep entries found. Enter data to see summary.
+    </div>
+}
+else
+{
+@if (goal.HasValue)
+{
+    <div class="mb-4">
+        <h4>Today's Calorie Progress (@DateTime.Today.ToString("MMMM dd"))</h4>
+        <p><strong>Goal:</strong> @goal.Value</p>
+        <p><strong>Slept:</strong> @total</p>
 
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar @(percentage < 100 ? "bg-info" : "bg-success")"
+                 role="progressbar"
+                 style="width: @percentage%"
+                 aria-valuenow="@percentage"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+                @percentage%
+            </div>
+        </div>
+    </div>
+}
+<h4>This Week's Sleep Breakdown</h4>
+<table class="table table-bordered w-50">
+    <thead>
+        <tr>
+            @foreach (var day in ((IDictionary<string, double>)ViewBag.WeeklySleep).Keys)
+            {
+                <th>@day</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            @foreach (var HoursSlept in ((IDictionary<string, double>)ViewBag.WeeklySleep).Values)
+            {
+                <td>@HoursSlept</td>
+            }
+        </tr>
+    </tbody>
+</table>
+
+<div class="alert alert-info">
+    <strong>Weekly Sleep Average:</strong> @ViewBag.WeeklyAverageSleep.ToString("0.##") hours
+    @if (ViewBag.SleepGoal != null)
+    {
+        <span>
+            (
+            @if (ViewBag.WeeklyAverageSleep >= ViewBag.SleepGoal)
+            {
+                <span class="text-success">Above Goal</span>
+            }
+            else
+            {
+                <span class="text-warning">Below Goal</span>
+            }
+            )
+        </span>
+    }
+</div>
+}
 <p>
     <a asp-action="Create">Create New</a>
     <a href="@Url.Action("SleepSummary", "SleepLogEntries")" class="btn btn-info">

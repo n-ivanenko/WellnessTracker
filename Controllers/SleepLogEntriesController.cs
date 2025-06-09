@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -37,10 +38,94 @@ namespace WellnessTracker.Controllers
 
             return View();
         }
+
+        // GET: Show sleep goal setting page
+        [HttpGet]
+        public async Task<IActionResult> SetGoal()
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId) ?? new UserGoal();
+                return View(userGoal);
+            }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetGoal(UserGoal userGoal)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            userGoal.UserId = userId;
+
+            ModelState.Remove("UserId");
+
+            if (ModelState.IsValid)
+            {
+                var existingGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+
+                if (existingGoal == null)
+                {
+                    _context.UserGoals.Add(userGoal);
+                }
+                else
+                {
+                    existingGoal.SleepGoal = userGoal.SleepGoal;
+                    _context.UserGoals.Update(existingGoal);
+                }
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "SleepLogEntries");
+            }
+
+            return View(userGoal);
+        }
+
+
         // GET: SleepLogEntries
         public async Task<IActionResult> Index()
         {
-            return View(await _context.SleepLogEntries.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var today = DateTime.Today;
+
+            var entries = await _context.SleepLogEntries
+                .Where(s => s.UserId == userId)
+                .OrderByDescending(s => s.Date)
+                .ToListAsync();
+
+            var totalSleptToday = await _context.SleepLogEntries
+                .Where(s => s.UserId == userId && s.Date.Date == today)
+                .SumAsync(s => (double?)s.HoursSlept) ?? 0;
+
+            var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+            var sleepGoal = userGoal?.SleepGoal ?? 0;
+
+            var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday start
+            var weekEnd = weekStart.AddDays(6);
+
+            var weekEntries = entries
+                .Where(e => e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
+                .GroupBy(e => e.Date.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(e => e.HoursSlept));
+
+            var weeklyAverage = weekEntries.Values.Count > 0 ? weekEntries.Values.Average() : 0;
+
+            var todaySleep = await _context.SleepLogEntries
+                .Where(c => c.UserId == userId && c.Date.Date == today)
+                .SumAsync(c => (double?)c.HoursSlept) ?? 0;
+
+            var weeklySleep = new Dictionary<string, double>();
+            for (int i = 0; i < 7; i++)
+            {
+                var date = weekStart.AddDays(i).Date;
+                var label = date.ToString("ddd");
+                weeklySleep[label] = weekEntries.ContainsKey(date) ? weekEntries[date] : 0;
+            }
+
+            ViewBag.WeeklySleep = weeklySleep;
+            ViewBag.WeeklyAverageSleep = weeklyAverage;
+            ViewBag.TodaySleep = todaySleep;
+            ViewBag.SleepPercentage = (userGoal.SleepGoal > 0) ? Math.Min(100, (int)((todaySleep / userGoal.SleepGoal) * 100)) : 0;
+            ViewBag.SleepGoal = sleepGoal;
+
+            return View(entries);
         }
 
         // GET: SleepLogEntries/Details/5
@@ -72,16 +157,23 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,HoursSlept,SleepQuality,Notes")] SleepLogEntry sleepLogEntry)
+        public async Task<IActionResult> Create(SleepLogEntry sleepLogEntry)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            sleepLogEntry.UserId = userId;
+
+            ModelState.Remove("UserId");
+
             if (ModelState.IsValid)
             {
                 _context.Add(sleepLogEntry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             return View(sleepLogEntry);
         }
+
 
         // GET: SleepLogEntries/Edit/5
         public async Task<IActionResult> Edit(int? id)

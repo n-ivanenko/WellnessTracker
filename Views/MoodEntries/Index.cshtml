@@ -4,44 +4,89 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Mood Entries</h1>
+
+<h3>Mood Trend</h3>
+<canvas id="moodChart" height="100"></canvas>
+<div class="mood-legend mb-3">
+    <h5>Mood Color Legend</h5>
+    <ul style="list-style: none; padding-left: 0;">
+        <li><span style="color: blue; font-weight: bold;">&#9632;</span> 9-10: Great</li>
+        <li><span style="color: green; font-weight: bold;">&#9632;</span> 7-8: Good</li>
+        <li><span style="color: goldenrod; font-weight: bold;">&#9632;</span> 5-6: Okay</li>
+        <li><span style="color: orange; font-weight: bold;">&#9632;</span> 3-4: Bad</li>
+        <li><span style="color: red; font-weight: bold;">&#9632;</span> 1-2: Worst</li>
+    </ul>
+</div>
+<hr />
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MoodRating)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.Date)</th>
+            <th>@Html.DisplayNameFor(model => model.MoodRating)</th>
+            <th>@Html.DisplayNameFor(model => model.Notes)</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MoodRating)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Date)</td>
+                <td>@Html.DisplayFor(modelItem => item.MoodRating)</td>
+                <td>@Html.DisplayFor(modelItem => item.Notes)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<canvas id="moodChart" width="400" height="200"></canvas>
+
+<script>
+    fetch('@Url.Action("MoodGraphData", "MoodEntries")')
+        .then(response => response.json())
+        .then(data => {
+            const labels = data.map(entry => entry.date);
+            const values = data.map(entry => entry.moodRating);
+            const colors = values.map(value => {
+                if (value >= 9) return "blue";
+                if (value >= 7) return "green";
+                if (value >= 5) return "yellow";
+                if (value >= 3) return "orange";
+                return "red";
+            });
+
+            const ctx = document.getElementById('moodChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mood Rating',
+                        data: values,
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading mood data:', error));
+</script>
