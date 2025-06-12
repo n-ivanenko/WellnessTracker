@@ -18,7 +18,10 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
-
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(up => up.UserId == userId);
+        }
         public IActionResult WorkoutSummary(DateTime? date)
         {
             var selectedDate = date ?? DateTime.Today;
@@ -48,14 +51,24 @@ namespace WellnessTracker.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
 
-            return View(userGoal ?? new UserGoal());
+            int? recommendedWorkout = null;
+
+            if (profile != null)
+            {
+                recommendedWorkout = 30;
+            }
+
+            ViewBag.RecommendedCalories = recommendedWorkout;
+
+            return View(userGoal ?? new UserGoals());
         }
 
         // POST: WorkoutLogEntries/SetGoal
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetGoal(UserGoal userGoal)
+        public async Task<IActionResult> SetGoal(UserGoals userGoal)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             userGoal.UserId = userId;
@@ -76,10 +89,19 @@ namespace WellnessTracker.Controllers
             return RedirectToAction("Index", "WorkoutLogEntries");
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int weekOffset = 0)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!UserHasProfile(userId))
+            {
+                return RedirectToAction("Create", "UserProfile");
+            }
+
             var today = DateTime.Today;
+            var weekStart = today.AddDays(-(int)(today.DayOfWeek == DayOfWeek.Sunday ? 6 : today.DayOfWeek - DayOfWeek.Monday))
+                       .AddDays(weekOffset * 7);
+            var weekEnd = weekStart.AddDays(6);
             var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
             var workoutGoal = userGoal?.WorkoutGoal ?? 0;
 
@@ -93,16 +115,14 @@ namespace WellnessTracker.Controllers
             }
 
             var entries = await _context.WorkoutLogEntries
-                .Where(c => c.UserId == userId && c.Date.Date == today)
-                .OrderByDescending(c => c.Date)
+                .Where(e => e.UserId == userId && e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
+                .OrderByDescending(e => e.Date)
                 .ToListAsync();
+
 
             var totalWorkoutToday = await _context.WorkoutLogEntries
                 .Where(s => s.UserId == userId && s.Date.Date == today)
                 .SumAsync(s => (double?)s.Duration) ?? 0;
-
-            var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday start
-            var weekEnd = weekStart.AddDays(6);
 
             var weekEntries = entries
                 .Where(e => e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
@@ -122,7 +142,12 @@ namespace WellnessTracker.Controllers
                 var label = date.ToString("ddd");
                 weeklyWorkout[label] = weekEntries.ContainsKey(date) ? weekEntries[date] : 0;
             }
+            var totalCaloriesToday = await _context.WorkoutLogEntries
+                .Where(e => e.UserId == userId && e.Date.Date == today)
+                .SumAsync(e => (double?)e.CaloriesBurned) ?? 0;
 
+            ViewBag.TotalCaloriesToday = totalCaloriesToday;
+            ViewBag.WeekOffset = weekOffset;
             ViewBag.WorkoutGoal = userGoal.WorkoutGoal;
             ViewBag.WeeklyWorkout = weeklyWorkout;
             ViewBag.WeeklyAverageWorkout = weeklyAverage;
@@ -161,20 +186,18 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,ExerciseName,Duration,CaloriesBurned,Notes")] WorkoutLogEntry workoutEntry)
+        public async Task<IActionResult> Create(WorkoutLogEntry entry)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            workoutEntry.UserId = userId;
-
-            ModelState.Remove("UserId");
+            entry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (ModelState.IsValid)
             {
-                _context.Add(workoutEntry);
+                _context.Add(entry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(workoutEntry);
+
+            return View(entry);
         }
 
         // GET: WorkoutEntries/Edit/5

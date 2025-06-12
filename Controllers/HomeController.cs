@@ -16,15 +16,49 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
-
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(up => up.UserId == userId);
+        }
         public async Task<IActionResult> Index(DateTime? date)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine("Current user ID: " + userId);
             var selectedDate = date ?? DateTime.Today;
+            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile != null)
+            {
+                double weightKg = profile.WeightLb * 0.453592;
+                double heightCm = profile.HeightIn * 2.54;
+                double bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.Age + 5;
+                int recommendedCalories = (int)(bmr * 1.5);
+
+                int recommendedSleep = profile.Age < 18 ? 9 : 8;
+
+                int recommendedWorkout = 30;
+
+                ViewBag.RecommendedCalories = recommendedCalories;
+                ViewBag.RecommendedSleep = recommendedSleep;
+                ViewBag.RecommendedWorkout = recommendedWorkout;
+            }
+            else
+            {
+                ViewBag.RecommendedCalories = null;
+                ViewBag.RecommendedSleep = null;
+                ViewBag.RecommendedWorkout = null;
+            }
 
             if (!User.Identity.IsAuthenticated || userId == null)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            bool hasProfile = _context.UserProfile.Any(up => up.UserId == userId);
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                hasProfile = _context.UserProfile.Any(up => up.UserId == userId);
             }
 
             var mood = await _context.MoodEntries
@@ -65,6 +99,7 @@ namespace WellnessTracker.Controllers
             var totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
             var userGoals = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
+            ViewBag.UserProfile = profile;
             ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");
             ViewBag.TotalCalories = totalCalories;
             ViewBag.TotalSleep = totalSleep;

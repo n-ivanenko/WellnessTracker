@@ -1,12 +1,30 @@
-﻿@model WellnessTracker.Models.UserGoal
+﻿@model WellnessTracker.Models.UserGoals
 @Html.AntiForgeryToken()
 
+@{
+    ViewData["Title"] = "Set Calorie Goal";
+    var recommended = ViewBag.RecommendedCalories as double?;
+}
+
+<h2>Set Your Calorie Goal</h2>
+
+@if (recommended != null)
+{
+    <div class="alert alert-info">
+        <strong>Recommended:</strong> @recommended kcal/day based on your profile.
+    </div>
+}
+
 <form asp-action="SetGoal" method="post">
+    @Html.AntiForgeryToken()
+
     <div class="mb-3">
-        <label asp-for="CalorieGoal" class="form-label"></label>
-        <input asp-for="CalorieGoal" class="form-control" />
+        <label asp-for="CalorieGoal" class="form-label">Calorie Goal (kcal)</label>
+        <input asp-for="CalorieGoal" class="form-control"
+               value="@(Model?.CalorieGoal == 0 && recommended != null ? recommended : Model.CalorieGoal)" />
         <span asp-validation-for="CalorieGoal" class="text-danger"></span>
     </div>
+
     <button type="submit" class="btn btn-primary">Save Goal</button>
     <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
 </form>

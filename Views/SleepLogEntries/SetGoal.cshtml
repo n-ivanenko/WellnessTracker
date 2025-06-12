@@ -1,5 +1,18 @@
-﻿@model WellnessTracker.Models.UserGoal
+﻿@model WellnessTracker.Models.UserGoals
 @Html.AntiForgeryToken()
+@{
+    ViewData["Title"] = "Set Sleep Goal";
+    var recommended = ViewBag.RecommendedSleep as int?;
+}
+
+<h2>Set Your Sleep Goal</h2>
+
+@if (recommended != null)
+{
+    <div class="alert alert-info">
+        <strong>Recommended:</strong> @recommended hours based on your profile.
+    </div>
+}
 
 <form asp-action="SetGoal" method="post">
     <div class="form-group">

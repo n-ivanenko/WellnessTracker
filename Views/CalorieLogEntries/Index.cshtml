@@ -10,12 +10,18 @@
     var goal = ViewBag.CalorieGoal as double?;
     var consumed = ViewBag.TodayCalories as double?;
     var percentage = ViewBag.CaloriesPercentage as int? ?? 0;
+    int currentOffset = ViewBag.WeekOffset ?? 0;
+
+    var weekStart = DateTime.Today.AddDays(currentOffset * 7).AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
+    var weekEnd = weekStart.AddDays(6);
+
 }
 
 @if (goal.HasValue)
 {
     <div class="mb-4">
         <h4>Today's Calorie Progress (@DateTime.Today.ToString("MMMM dd"))</h4>
+        <a asp-controller="CalorieLogEntries" asp-action="SetGoal" class="btn btn-sm btn-outline-primary ms-2">Edit Goal</a>
         <p><strong>Goal:</strong> @goal.Value</p>
         <p><strong>Consumed:</strong> @consumed</p>
 
@@ -34,9 +40,25 @@
 else
 {
     <div class="alert alert-warning">
-        You haven't set a calorie goal yet. <a asp-controller="UserGoals" asp-action="SetGoal">Set your goal</a>.
+        You haven't set a calorie goal yet. <a asp-controller="CalorieLogEntries" asp-action="SetGoal">Set your goal</a>.
     </div>
 }
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
+    </div>
+    <div>
+        <a class="btn btn-outline-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+        @if (weekEnd < DateTime.Today)
+        {
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary" disabled>Next Week →</button>
+        }
+    </div>
+</div>
 <h4>This Week's Calorie Breakdown</h4>
 <table class="table table-bordered w-50">
     <thead>
@@ -104,7 +126,7 @@ else
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Date)
+                @item.Date.ToString("yyyy-MM-dd")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.FoodItem)

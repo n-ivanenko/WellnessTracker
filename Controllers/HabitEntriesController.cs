@@ -18,19 +18,24 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(up => up.UserId == userId);
+        }
+
 
         // GET: HabitEntries
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int weekOffset = 0)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            DateTime startOfWeek = DateTime.Today;
-            while (startOfWeek.DayOfWeek != DayOfWeek.Monday)
-            {
-                startOfWeek = startOfWeek.AddDays(-1);
-            }
+            var today = DateTime.Today;
+            var baseDate = today.AddDays(weekOffset * 7);
+            var weekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek + (baseDate.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday
+            var weekEnd = weekStart.AddDays(6);
+
             var weekDates = Enumerable.Range(0, 7)
-                .Select(offset => startOfWeek.AddDays(offset))
+                .Select(offset => weekStart.AddDays(offset))
                 .ToList();
 
             var habits = await _context.HabitEntries
@@ -42,15 +47,17 @@ namespace WellnessTracker.Controllers
             var completions = await _context.HabitCompletions
                 .Where(c => habitIds.Contains(c.HabitEntryId)
                     && c.UserId == userId
-                    && c.Date >= startOfWeek
-                    && c.Date < startOfWeek.AddDays(7))
+                    && c.Date.Date >= weekStart
+                    && c.Date.Date <= weekEnd)
                 .ToListAsync();
 
             ViewBag.WeekDates = weekDates;
             ViewBag.Completions = completions;
+            ViewBag.WeekOffset = weekOffset;
 
             return View(habits);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitHabitCompletions(List<string> completions)

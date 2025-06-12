@@ -18,6 +18,10 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(up => up.UserId == userId);
+        }
 
         public IActionResult CalorieSummary(DateTime? date)
         {
@@ -40,49 +44,93 @@ namespace WellnessTracker.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
 
-            return View(userGoal ?? new UserGoal());
+            double? recommendedCalories = null;
+
+            if (profile != null)
+            {
+                double weightKg = profile.WeightLb * 0.453592;
+                double heightCm = profile.HeightIn * 2.54;
+                double bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.Age + 5;
+                recommendedCalories = Math.Round(bmr * 1.5);
+            }
+
+            ViewBag.RecommendedCalories = recommendedCalories;
+            return View(userGoal ?? new UserGoals());
         }
 
         // POST: CalorieLogEntries/SetGoal
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetGoal(UserGoal userGoal)
+        public async Task<IActionResult> SetGoal(UserGoals goal)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            userGoal.UserId = userId;
+            var existingGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
             ModelState.Remove("UserId");
 
             if (ModelState.IsValid)
             {
-                _context.Add(userGoal);
+                if (existingGoal != null)
+                {
+                    existingGoal.CalorieGoal = goal.CalorieGoal;
+                    _context.Update(existingGoal);
+                }
+                else
+                {
+                    goal.UserId = userId;
+                    _context.UserGoals.Add(goal);
+                }
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index", "CalorieLogEntries");
             }
 
-            return View(userGoal);
+            // Re-fetch recommendation in case the model is invalid
+            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile != null)
+            {
+                double weightKg = profile.WeightLb * 0.453592;
+                double heightCm = profile.HeightIn * 2.54;
+                double bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.Age + 5;
+                ViewBag.RecommendedCalories = Math.Round(bmr * 1.5);
+            }
+
+            return View(goal);
         }
-        public async Task<IActionResult> Index()
+
+        public async Task<IActionResult> Index(int weekOffset = 0)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!UserHasProfile(userId))
+            {
+                return RedirectToAction("Create", "UserProfile");
+            }
+
             var today = DateTime.Today;
 
+            // Adjust the week based on offset
+            var baseDate = today.AddDays(weekOffset * 7);
+            var weekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek + (baseDate.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday
+            var weekEnd = weekStart.AddDays(6);
+
             var entries = await _context.CalorieLogEntries
-                .Where(c => c.UserId == userId && c.Date.Date == today)
-                .OrderByDescending(c => c.Date)
+                .Where(e => e.UserId == userId)
+                .OrderByDescending(e => e.Date)
                 .ToListAsync();
+
+            var filteredEntries = entries
+                .Where(e => e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
+                .ToList();
 
             var userGoal = await _context.UserGoals
                 .Where(g => g.UserId == userId)
                 .Select(g => g.CalorieGoal)
                 .FirstOrDefaultAsync();
 
-            var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday start
-            var weekEnd = weekStart.AddDays(6);
-
-            var weekEntries = entries
-                .Where(e => e.Date.Date >= weekStart && e.Date.Date <= weekEnd)
+            var weekEntries = filteredEntries
                 .GroupBy(e => e.Date.Date)
                 .ToDictionary(g => g.Key, g => g.Sum(e => e.Calories));
 
@@ -106,7 +154,10 @@ namespace WellnessTracker.Controllers
             ViewBag.TodayCalories = todayCalories;
             ViewBag.CaloriesPercentage = (userGoal > 0) ? Math.Min(100, (int)((todayCalories / userGoal) * 100)) : 0;
 
-            return View(entries);
+            // For button logic
+            ViewBag.WeekOffset = weekOffset;
+
+            return View(filteredEntries);
         }
 
         // GET: CalorieLogEntries/Details/5
@@ -138,19 +189,20 @@ namespace WellnessTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,FoodItem,Calories,Notes,UserId")] CalorieLogEntry calorieLogEntry)
+        public async Task<IActionResult> Create(CalorieLogEntry entry)
         {
+            entry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             if (ModelState.IsValid)
             {
-                calorieLogEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                calorieLogEntry.Date = DateTime.Today;
-
-                _context.Add(calorieLogEntry);
+                _context.Add(entry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(calorieLogEntry);
+
+            return View(entry);
         }
+
 
         // GET: CalorieLogEntries/Edit/5
         public async Task<IActionResult> Edit(int? id)

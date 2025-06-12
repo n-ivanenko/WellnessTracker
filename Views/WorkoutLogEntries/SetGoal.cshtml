@@ -1,6 +1,19 @@
-﻿@model WellnessTracker.Models.UserGoal
+﻿@model WellnessTracker.Models.UserGoals
+@Html.AntiForgeryToken()
 
-<h2>Set Your Goals</h2>
+@{
+    ViewData["Title"] = "Set Workout Goal";
+    var recommended = ViewBag.RecommendedWorkout as int?;
+}
+
+<h2>Set Your Workout Goal</h2>
+
+@if (recommended != null)
+{
+    <div class="alert alert-info">
+        <strong>Recommended:</strong> @recommended minutes based on your profile.
+    </div>
+}
 
 <form asp-controller="WorkoutLogEntries" asp-action="SetGoal" method="post">
 

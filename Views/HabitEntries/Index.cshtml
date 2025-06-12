@@ -1,8 +1,29 @@
 ﻿@model List<WellnessTracker.Models.HabitEntry>
+<h1>Habit Log Entries</h1>
 @{
     var weekDates = (List<DateTime>)ViewBag.WeekDates;
     var completions = (List<WellnessTracker.Models.HabitCompletion>)ViewBag.Completions;
+    int currentOffset = ViewBag.WeekOffset ?? 0;
+    var weekStart = weekDates.First();
+    var weekEnd = weekDates.Last();
 }
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
+    </div>
+    <div>
+        <a class="btn btn-outline-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+        @if (weekEnd < DateTime.Today)
+        {
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary" disabled>Next Week →</button>
+        }
+    </div>
+</div>
+
 
 <form asp-action="SubmitHabitCompletions" method="post">
     <table class="table table-bordered">

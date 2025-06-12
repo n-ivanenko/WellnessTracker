@@ -3,10 +3,30 @@
 @{
     ViewData["Title"] = "Index";
 }
+@{
+    int currentOffset = ViewBag.WeekOffset ?? 0;
+    DateTime startOfWeek = ViewBag.StartOfWeek ?? DateTime.Today;
+    DateTime endOfWeek = ViewBag.EndOfWeek ?? DateTime.Today;
+}
 
 <h1>Mood Entries</h1>
 
 <h3>Mood Trend</h3>
+<div class="d-flex align-items-center mb-2">
+    <a class="btn btn-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+
+    @if (endOfWeek < DateTime.Today)
+    {
+        <a class="btn btn-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+    }
+    else
+    {
+        <button class="btn btn-secondary me-2" disabled>Next Week →</button>
+    }
+
+    <span id="weekLabel" class="fw-bold">Week of @startOfWeek.ToString("MM/dd/yyyy") to @endOfWeek.ToString("MM/dd/yyyy")</span>
+</div>
+
 <canvas id="moodChart" height="100"></canvas>
 <div class="mood-legend mb-3">
     <h5>Mood Color Legend</h5>
@@ -52,41 +72,47 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <canvas id="moodChart" width="400" height="200"></canvas>
-
 <script>
-    fetch('@Url.Action("MoodGraphData", "MoodEntries")')
-        .then(response => response.json())
-        .then(data => {
-            const labels = data.map(entry => entry.date);
-            const values = data.map(entry => entry.moodRating);
-            const colors = values.map(value => {
-                if (value >= 9) return "blue";
-                if (value >= 7) return "green";
-                if (value >= 5) return "yellow";
-                if (value >= 3) return "orange";
-                return "red";
-            });
+    let weekOffset = @(ViewBag.WeekOffset ?? 0);
+    let chart;
 
-            const ctx = document.getElementById('moodChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Mood Rating',
-                        data: values,
-                        backgroundColor: colors
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10
+    function loadMoodChart() {
+        console.log("Loading chart for weekOffset:", weekOffset);
+
+        fetch(`/MoodEntries/MoodGraphData?weekOffset=${weekOffset}`)
+            .then(r => r.json())
+            .then(data => {
+                console.log("Received data:", data);
+
+                const labels = data.map(x => x.date);
+                const values = data.map(x => x.moodRating);
+                const colors = values.map(v => v >= 9 ? "blue" : v >= 7 ? "green" : v >= 5 ? "goldenrod" : v >= 3 ? "orange" : "red");
+
+                if (chart) chart.destroy();
+
+                const ctx = document.getElementById('moodChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Mood Rating',
+                            data: values,
+                            backgroundColor: colors
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 10
+                            }
                         }
                     }
-                }
-            });
-        })
-        .catch(error => console.error('Error loading mood data:', error));
+                });
+            })
+            .catch(err => console.error("Fetch error:", err));
+    }
+
+    loadMoodChart();
 </script>

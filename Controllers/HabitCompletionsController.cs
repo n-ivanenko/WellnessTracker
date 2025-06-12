@@ -18,6 +18,10 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(p => p.UserId == userId);
+        }
 
         [HttpPost]
         public async Task<IActionResult> MarkComplete(int habitEntryId)
@@ -46,11 +50,44 @@ namespace WellnessTracker.Controllers
             return RedirectToAction("Index", "HabitEntries");
         }
         // GET: HabitCompletions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int weekOffset = 0)
         {
-            var appDbContext = _context.HabitCompletions.Include(h => h.HabitEntry);
-            return View(await appDbContext.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!UserHasProfile(userId))
+            {
+                return RedirectToAction("Create", "UserProfile");
+            }
+
+            var today = DateTime.Today;
+            var baseDate = today.AddDays(weekOffset * 7);
+            var weekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek + (baseDate.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
+            var weekEnd = weekStart.AddDays(6);
+
+            var weekDates = Enumerable.Range(0, 7)
+                .Select(offset => weekStart.AddDays(offset))
+                .ToList();
+
+            var habits = await _context.HabitEntries
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+
+            var habitIds = habits.Select(h => h.Id).ToList();
+
+            var completions = await _context.HabitCompletions
+                .Where(c => habitIds.Contains(c.HabitEntryId)
+                    && c.UserId == userId
+                    && c.Date.Date >= weekStart
+                    && c.Date.Date <= weekEnd)
+                .ToListAsync();
+
+            ViewBag.WeekDates = weekDates;
+            ViewBag.Completions = completions;
+            ViewBag.WeekOffset = weekOffset;
+
+            return View(habits);
         }
+
 
         // GET: HabitCompletions/Details/5
         public async Task<IActionResult> Details(int? id)

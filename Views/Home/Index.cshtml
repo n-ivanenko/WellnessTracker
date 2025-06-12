@@ -1,9 +1,59 @@
-﻿@{
+﻿@using WellnessTracker.Models
+@{
     ViewData["Title"] = "Dashboard";
     var date = ViewBag.SelectedDate;
 }
 
 <h2>Dashboard</h2>
+
+@{
+    var profile = ViewBag.UserProfile as UserProfile;
+}
+
+@if (profile != null)
+{
+    <div>
+        <h4>Your Profile</h4>
+        <p><strong>Age:</strong> @profile.Age</p>
+        <p><strong>Height (inches):</strong> @profile.HeightIn</p>
+        <p><strong>Weight (lbs):</strong> @profile.WeightLb</p>
+
+        <a class="btn btn-primary" href="@Url.Action("Edit", "UserProfile", new { id = profile.Id })">Edit Profile</a>
+    </div>
+}
+else
+{
+    <p>No profile found. Please <a href="@Url.Action("Create", "UserProfile")">create your profile</a>.</p>
+}
+
+<h2>Recommended Daily Goals</h2>
+
+@if (ViewBag.RecommendedCalories != null)
+{
+    <p><strong>Calories:</strong> @ViewBag.RecommendedCalories kcal</p>
+}
+else
+{
+    <p><strong>Calories:</strong> No recommendation (missing profile)</p>
+}
+
+@if (ViewBag.RecommendedSleep != null)
+{
+    <p><strong>Sleep:</strong> @ViewBag.RecommendedSleep hours</p>
+}
+else
+{
+    <p><strong>Sleep:</strong> No recommendation (missing profile)</p>
+}
+
+@if (ViewBag.RecommendedWorkout != null)
+{
+    <p><strong>Workout:</strong> @ViewBag.RecommendedWorkout minutes</p>
+}
+else
+{
+    <p><strong>Workout:</strong> No recommendation (missing profile)</p>
+}
 
 <form method="get" class="mb-4">
     <label for="date">Select a date:</label>

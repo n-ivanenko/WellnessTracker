@@ -8,22 +8,22 @@
     var goal = ViewBag.WorkoutGoal as double?;
     var total = ViewBag.TodayWorkout as double? ?? 0;
     var percentage = (int)(ViewBag.WorkoutPercentage ?? 0.0);
+    int currentOffset = ViewBag.WeekOffset ?? 0;
+    var weekStart = DateTime.Today.AddDays(currentOffset * 7).AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
+    var weekEnd = weekStart.AddDays(6);
+
 
 }
-@if (total == 0 && (ViewBag.WeeklyWorkout == null || ((IDictionary<string, double>)ViewBag.WeeklyWorkout).Values.All(v => v == 0)))
-{
-    <div class="alert alert-warning">
-        No Workout entries found. Enter data to see summary.
-    </div>
-}
-else
-{
     @if (goal.HasValue)
     {
         <div class="mb-4">
             <h4>Today's Workout Progress (@DateTime.Today.ToString("MMMM dd"))</h4>
-            <p><strong>Goal:</strong> @goal.Value</p>
-            <p><strong>Workout:</strong> @total</p>
+            <a asp-controller="WorkoutLogEntries" asp-action="SetGoal" class="btn btn-sm btn-outline-primary ms-2">Edit Goal</a>
+            <p><strong>Goal:</strong> @goal.Value minutes</p>
+            <p><strong>Workout:</strong> @total minutes</p>
+        <div class="mb-4">
+            <p><strong>Calories Burned: </strong>@ViewBag.TotalCaloriesToday kcal </p>
+        </div>
 
             <div class="progress" style="height: 25px;">
                 <div class="progress-bar @(percentage < 100 ? "bg-info" : "bg-success")"
@@ -43,6 +43,22 @@ else
             You haven't set a workout goal yet. <a asp-controller="WorkoutLogEntries" asp-action="SetGoal">Set your goal</a>.
         </div>
     }
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
+        </div>
+        <div>
+            <a class="btn btn-outline-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+            @if (weekEnd < DateTime.Today)
+            {
+                <a class="btn btn-outline-secondary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+            }
+            else
+            {
+                <button class="btn btn-outline-secondary" disabled>Next Week →</button>
+            }
+        </div>
+    </div>
     <h4>This Week's Workout Breakdown</h4>
     <table class="table table-bordered w-50">
         <thead>
@@ -64,7 +80,7 @@ else
     </table>
 
     <div class="alert alert-info">
-        <strong>Weekly Workout Average:</strong> @ViewBag.WeeklyAverageWorkout.ToString("0.##") hours
+        <strong>Weekly Workout Average:</strong> @ViewBag.WeeklyAverageWorkout.ToString("0.##") minutes
         @if (ViewBag.WorkoutGoal != null)
         {
             <span>
@@ -99,7 +115,7 @@ else
                 @Html.DisplayNameFor(model => model.ExerciseName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Duration)
+                @Html.DisplayNameFor(model => model.Duration) (Minutes)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CaloriesBurned)
@@ -114,7 +130,7 @@ else
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Date)
+                @item.Date.ToString("yyyy-MM-dd")
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ExerciseName)

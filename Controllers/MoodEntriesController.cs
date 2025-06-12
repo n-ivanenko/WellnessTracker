@@ -18,30 +18,62 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
-        [HttpGet]
-        public IActionResult MoodGraphData()
-        {
-            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var moodData = _context.MoodEntries
-                .Where(m => m.UserId == userId)
+        private bool UserHasProfile(string userId)
+        {
+            return _context.UserProfile.Any(up => up.UserId == userId);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MoodGraphData(int weekOffset = 0)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var today = DateTime.Today;
+
+            var startOfWeek = today.AddDays(-(int)(today.DayOfWeek == DayOfWeek.Sunday ? 6 : today.DayOfWeek - DayOfWeek.Monday))
+                                   .AddDays(weekOffset * 7);
+            var endOfWeek = startOfWeek.AddDays(6);
+
+            var moodData = await _context.MoodEntries
+                .Where(m => m.UserId == userId && m.Date.Date >= startOfWeek.Date && m.Date.Date <= endOfWeek.Date)
                 .OrderBy(m => m.Date)
                 .Select(m => new
                 {
-                    date = m.Date.ToString("yyyy-MM-dd"),
+                    date = m.Date.ToString("MM/dd"),
                     moodRating = m.MoodRating
                 })
-                .ToList();
+                .ToListAsync();
 
             return Json(moodData);
         }
 
-
         // GET: MoodEntries
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int weekOffset = 0)
         {
-            return View(await _context.MoodEntries.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!UserHasProfile(userId))
+            {
+                return RedirectToAction("Create", "UserProfile");
+            }
+
+            var today = DateTime.Today;
+            var startOfWeek = today.AddDays(-(int)(today.DayOfWeek == DayOfWeek.Sunday ? 6 : today.DayOfWeek - DayOfWeek.Monday))
+                                   .AddDays(weekOffset * 7);
+            var endOfWeek = startOfWeek.AddDays(6);
+
+            var entries = await _context.MoodEntries
+                .Where(m => m.UserId == userId && m.Date.Date >= startOfWeek && m.Date.Date <= endOfWeek)
+                .OrderBy(m => m.Date)
+                .ToListAsync();
+
+            ViewBag.WeekOffset = weekOffset;
+            ViewBag.StartOfWeek = startOfWeek;
+            ViewBag.EndOfWeek = endOfWeek;
+
+            return View(entries);
         }
+
 
         // GET: MoodEntries/Details/5
         public async Task<IActionResult> Details(int? id)
