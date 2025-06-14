@@ -1,33 +1,37 @@
-﻿@model UserProfile
+﻿@model WellnessTracker.Models.UserProfile
 
-@{
-    ViewData["Title"] = "Create User Profile";
-}
-
-<h1>Create Your Profile</h1>
+<h2>Create User Profile</h2>
 
 <form asp-action="Create" method="post">
     <div class="form-group">
-        <label asp-for="Age"></label>
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Age" class="control-label"></label>
         <input asp-for="Age" class="form-control" />
         <span asp-validation-for="Age" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="HeightIn"></label>
+        <label asp-for="HeightIn" class="control-label"></label>
         <input asp-for="HeightIn" class="form-control" />
         <span asp-validation-for="HeightIn" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="WeightLb"></label>
+        <label asp-for="WeightLb" class="control-label"></label>
         <input asp-for="WeightLb" class="form-control" />
         <span asp-validation-for="WeightLb" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Save Profile</button>
+    <button type="submit" class="btn btn-primary">Create</button>
 </form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

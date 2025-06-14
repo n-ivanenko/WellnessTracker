@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using WellnessTracker.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
+using WellnessTracker.Models;
 
 namespace WellnessTracker.Controllers
 {
@@ -16,26 +16,31 @@ namespace WellnessTracker.Controllers
         {
             _context = context;
         }
-        private bool UserHasProfile(string userId)
-        {
-            return _context.UserProfile.Any(up => up.UserId == userId);
-        }
+
         public async Task<IActionResult> Index(DateTime? date)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine("Current user ID: " + userId);
-            var selectedDate = date ?? DateTime.Today;
-            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
 
+            if (!User.Identity.IsAuthenticated || userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var selectedDate = date ?? DateTime.Today;
+
+            // Get user profile
+            var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
+            ViewBag.UserProfile = profile;
+            ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");
+
+            // Calculate recommended goals
             if (profile != null)
             {
                 double weightKg = profile.WeightLb * 0.453592;
                 double heightCm = profile.HeightIn * 2.54;
                 double bmr = 10 * weightKg + 6.25 * heightCm - 5 * profile.Age + 5;
                 int recommendedCalories = (int)(bmr * 1.5);
-
                 int recommendedSleep = profile.Age < 18 ? 9 : 8;
-
                 int recommendedWorkout = 30;
 
                 ViewBag.RecommendedCalories = recommendedCalories;
@@ -49,62 +54,29 @@ namespace WellnessTracker.Controllers
                 ViewBag.RecommendedWorkout = null;
             }
 
-            if (!User.Identity.IsAuthenticated || userId == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            bool hasProfile = _context.UserProfile.Any(up => up.UserId == userId);
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                hasProfile = _context.UserProfile.Any(up => up.UserId == userId);
-            }
-
-            var mood = await _context.MoodEntries
-                .Where(m => m.UserId == userId && m.Date.Date == selectedDate)
-                .Select(m => m.MoodRating.ToString())
-                .FirstOrDefaultAsync();
-
-            var sleep = await _context.SleepLogEntries
-                .Where(s => s.UserId == userId && s.Date.Date == selectedDate)
-                .Select(s => s.HoursSlept + " hrs")
-                .FirstOrDefaultAsync();
-
+            // Get daily stats
             var totalCalories = await _context.CalorieLogEntries
                 .Where(c => c.UserId == userId && c.Date.Date == selectedDate)
                 .SumAsync(c => (double?)c.Calories) ?? 0;
 
-            var totalWorkoutDuration = await _context.WorkoutLogEntries
-                .Where(w => w.UserId == userId && w.Date.Date == selectedDate)
-                .SumAsync(w => (int?)w.Duration) ?? 0;
-
-            var totalHabitsCompleted = await _context.HabitCompletions
-                .Where(h => h.UserId == userId && h.Date.Date == selectedDate)
-                .CountAsync();
-
-            var totalHabits = await _context.HabitEntries
-                .Where(h => h.UserId == userId)
-                .CountAsync();
-
             var totalSleep = await _context.SleepLogEntries
-                .Where(s => s.Date.Date == selectedDate && s.UserId == userId)
+                .Where(s => s.UserId == userId && s.Date.Date == selectedDate)
                 .SumAsync(s => (double?)s.HoursSlept) ?? 0;
 
             var workouts = await _context.WorkoutLogEntries
-                .Where(w => w.Date.Date == selectedDate && w.UserId == userId)
+                .Where(w => w.UserId == userId && w.Date.Date == selectedDate)
                 .ToListAsync();
 
-            var totalWorkoutHours = workouts.Sum(w => w.Duration);
-            var totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
-            var userGoals = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+            double totalWorkoutHours = workouts.Sum(w => w.Duration); // Assuming Duration is double (in minutes)
+            double totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
 
-            ViewBag.UserProfile = profile;
-            ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");
             ViewBag.TotalCalories = totalCalories;
             ViewBag.TotalSleep = totalSleep;
             ViewBag.TotalWorkoutHours = totalWorkoutHours;
             ViewBag.TotalWorkoutCalories = totalWorkoutCalories;
+
+            // Get user goals
+            var userGoals = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
             if (userGoals != null)
             {
@@ -124,8 +96,38 @@ namespace WellnessTracker.Controllers
                 ViewBag.CaloriesStatus = ViewBag.SleepStatus = ViewBag.WorkoutStatus = "No Goal Set";
             }
 
-            return View();
+            // Habit tracking progress
+            var allHabits = await _context.HabitEntries
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+            int totalHabits = allHabits.Count;
 
+            var todayCompletions = await _context.HabitCompletions
+                .Where(c => c.UserId == userId && c.Date.Date == selectedDate)
+                .Select(c => c.HabitEntryId)  // Assuming HabitCompletions links to HabitEntryId
+                .Distinct()
+                .ToListAsync();
+            int completedHabits = todayCompletions.Count;
+
+            ViewBag.TotalHabits = totalHabits;
+            ViewBag.HabitsCompleted = completedHabits;
+
+            // Get mood for selected day
+            var moodEntry = await _context.MoodEntries
+                .Where(m => m.UserId == userId && m.Date.Date == selectedDate)
+                .FirstOrDefaultAsync();
+
+            if (moodEntry != null)
+            {
+                ViewBag.MoodRating = moodEntry.MoodRating; 
+            }
+            else
+            {
+                ViewBag.MoodRating = null;
+                ViewBag.MoodNote = null;
+            }
+
+            return View();
         }
     }
 }

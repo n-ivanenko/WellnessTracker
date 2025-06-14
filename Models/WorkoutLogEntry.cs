@@ -15,7 +15,7 @@ namespace WellnessTracker.Models
         public string ExerciseName { get; set; }
         [Required]
         public double Duration { get; set; }
-        [Range(1, 100)]
+        [Range(1, 10000)]
         public double CaloriesBurned { get; set; }
         [MaxLength(1000)]
         public string? Notes { get; set; }

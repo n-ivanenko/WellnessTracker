@@ -1,0 +1,53 @@
+﻿@model IEnumerable<WellnessTracker.Models.HabitEntry>
+@{
+    ViewData["Title"] = "User Habits";
+    var completions = ViewBag.HabitCompletions as List<WellnessTracker.Models.HabitCompletion> ?? new List<WellnessTracker.Models.HabitCompletion>();
+    var userId = ViewBag.UserId as string;
+}
+
+<h2>User Habits</h2>
+
+@foreach (var habit in Model)
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <strong>@habit.HabitName</strong>
+            <div>
+                <a asp-action="EditHabit" asp-route-id="@habit.Id" class="btn btn-sm btn-warning">Edit</a>
+                <a asp-action="DeleteHabit" asp-route-id="@habit.Id" class="btn btn-sm btn-danger">Delete</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <p>@habit.Notes</p>
+            <h5>Completions:</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in completions.Where(c => c.HabitEntryId == habit.Id))
+                    {
+                        <tr>
+                            <td>@c.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@(c.IsCompleted ? "Yes" : "No")</td>
+                            <td>
+                                <form asp-action="ToggleCompletion" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button class="btn btn-sm btn-secondary">Toggle</button>
+                                </form>
+                                <form asp-action="DeleteCompletion" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

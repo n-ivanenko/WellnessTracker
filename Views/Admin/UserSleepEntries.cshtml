@@ -1,0 +1,29 @@
+﻿@model IEnumerable<WellnessTracker.Models.SleepLogEntry>
+
+<h2>Sleep Log</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Hours Slept</th>
+            <th>Sleep Quality</th>
+            <th>Notes</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entry in Model)
+        {
+            <tr>
+                <td>@entry.Date.ToShortDateString()</td>
+                <td>@entry.HoursSlept</td>
+                <td>@entry.SleepQuality</td>
+                <td>@entry.Notes</td>
+                <td>
+                    <a asp-action="EditSleepEntry" asp-route-id="@entry.Id">Edit</a> |
+                    <a asp-action="DeleteSleepEntry" asp-route-id="@entry.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

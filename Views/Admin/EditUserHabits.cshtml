@@ -1,0 +1,22 @@
+﻿@model WellnessTracker.Models.HabitEntry
+
+<h2>Edit Habit</h2>
+
+<form asp-action="EditHabit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="form-group">
+        <label asp-for="HabitName"></label>
+        <input asp-for="HabitName" class="form-control" />
+        <span asp-validation-for="HabitName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="UserHabits" asp-route-userId="@Model.UserId" class="btn btn-secondary">Cancel</a>
+</form>

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<WellnessTracker.Models.WorkoutLogEntry>
+
+<h2>Workout Log</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Exercise Name</th>
+            <th>Duration</th>
+            <th>Calories Burned</th>
+            <th>Notes</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entry in Model)
+        {
+            <tr>
+                <td>@entry.Date.ToShortDateString()</td>
+                <td>@entry.ExerciseName</td>
+                <td>@entry.Duration</td>
+                <td>@entry.CaloriesBurned</td>
+                <td>@entry.Notes</td>
+                <td>
+                    <a asp-action="EditWorkoutEntry" asp-route-id="@entry.Id">Edit</a> |
+                    <a asp-action="DeleteWorkoutEntry" asp-route-id="@entry.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,33 @@
+﻿@model WellnessTracker.Models.CalorieLogEntry
+
+@{
+    ViewData["Title"] = "Edit Calorie Entry";
+}
+
+<h2>Edit Calorie Entry</h2>
+
+<form asp-action="@ViewContext.RouteData.Values["action"]" method="post">
+    <input type="hidden" asp-for="UserId" />
+    <div class="form-group">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" class="form-control" type="date" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="FoodItem" class="control-label"></label>
+        <input asp-for="FoodItem" class="form-control" />
+        <span asp-validation-for="FoodItem" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Calories" class="control-label"></label>
+        <input asp-for="Calories" class="form-control" />
+        <span asp-validation-for="Calories" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Notes" class="control-label"></label>
+        <input asp-for="Notes" class="form-control" />
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="UserCalorieEntries" asp-route-userId="@Model.UserId" class="btn btn-secondary">Cancel</a>
+</form>

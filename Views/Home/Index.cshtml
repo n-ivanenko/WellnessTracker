@@ -1,18 +1,16 @@
 ﻿@using WellnessTracker.Models
 @{
     ViewData["Title"] = "Dashboard";
-    var date = ViewBag.SelectedDate;
-}
-
-<h2>Dashboard</h2>
-
-@{
+    var date = ViewBag.SelectedDate as string;
     var profile = ViewBag.UserProfile as UserProfile;
 }
+
+<h1>Dashboard</h1>
 
 @if (profile != null)
 {
     <div>
+        <h3>Hello, @profile.Name!</h3>
         <h4>Your Profile</h4>
         <p><strong>Age:</strong> @profile.Age</p>
         <p><strong>Height (inches):</strong> @profile.HeightIn</p>
@@ -26,34 +24,98 @@ else
     <p>No profile found. Please <a href="@Url.Action("Create", "UserProfile")">create your profile</a>.</p>
 }
 
-<h2>Recommended Daily Goals</h2>
+<h3>Recommended vs Set Daily Goals</h3>
 
-@if (ViewBag.RecommendedCalories != null)
-{
-    <p><strong>Calories:</strong> @ViewBag.RecommendedCalories kcal</p>
-}
-else
-{
-    <p><strong>Calories:</strong> No recommendation (missing profile)</p>
-}
-
-@if (ViewBag.RecommendedSleep != null)
-{
-    <p><strong>Sleep:</strong> @ViewBag.RecommendedSleep hours</p>
-}
-else
-{
-    <p><strong>Sleep:</strong> No recommendation (missing profile)</p>
-}
-
-@if (ViewBag.RecommendedWorkout != null)
-{
-    <p><strong>Workout:</strong> @ViewBag.RecommendedWorkout minutes</p>
-}
-else
-{
-    <p><strong>Workout:</strong> No recommendation (missing profile)</p>
-}
+<table class="table table-bordered w-75">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Recommended</th>
+            <th>Your Set Goal</th>
+            <th>Edit Goal</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Calories</strong></td>
+            <td>
+                @if (ViewBag.RecommendedCalories != null)
+                {
+                    @($"{ViewBag.RecommendedCalories} kcal")
+                }
+                else
+                {
+                    <span class="text-muted">No recommendation</span>
+                }
+            </td>
+            <td>
+                @if (ViewBag.CalorieGoal != null)
+                {
+                    @($"{ViewBag.CalorieGoal} kcal")
+                }
+                else
+                {
+                    <span class="text-muted">No goal set</span>
+                }
+            </td>
+            <td>
+                <a class="btn btn-sm btn-primary" href="@Url.Action("SetGoal", "CalorieLogEntries")">Edit Calorie Goal</a>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Sleep</strong></td>
+            <td>
+                @if (ViewBag.RecommendedSleep != null)
+                {
+                    @($"{ViewBag.RecommendedSleep} hrs")
+                }
+                else
+                {
+                    <span class="text-muted">No recommendation</span>
+                }
+            </td>
+            <td>
+                @if (ViewBag.SleepGoal != null)
+                {
+                    @($"{ViewBag.SleepGoal} hrs")
+                }
+                else
+                {
+                    <span class="text-muted">No goal set</span>
+                }
+            </td>
+            <td>
+                <a class="btn btn-sm btn-primary" href="@Url.Action("SetGoal", "SleepLogEntries")">Edit Sleep Goal</a>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Workout</strong></td>
+            <td>
+                @if (ViewBag.RecommendedWorkout != null)
+                {
+                    @($"{ViewBag.RecommendedWorkout} min")
+                }
+                else
+                {
+                    <span class="text-muted">No recommendation</span>
+                }
+            </td>
+            <td>
+                @if (ViewBag.WorkoutGoal != null)
+                {
+                    @($"{ViewBag.WorkoutGoal} min")
+                }
+                else
+                {
+                    <span class="text-muted">No goal set</span>
+                }
+            </td>
+            <td>
+                <a class="btn btn-sm btn-primary" href="@Url.Action("SetGoal", "WorkoutLogEntries")">Edit Workout Goal</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 <form method="get" class="mb-4">
     <label for="date">Select a date:</label>
@@ -62,84 +124,90 @@ else
 </form>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card border-info mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Calories Consumed</h5>
-                <p class="card-text"><strong>@ViewBag.TotalCalories</strong> kcal</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card border-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Sleep Duration</h5>
-                <p class="card-text"><strong>@ViewBag.TotalSleep</strong> hours</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card border-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Workout Hours</h5>
-                <p class="card-text"><strong>@ViewBag.TotalWorkoutHours</strong> hours</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card border-danger mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Workout Calories Burned</h5>
-                <p class="card-text"><strong>@ViewBag.TotalWorkoutCalories</strong> kcal</p>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
     <div class="col-md-4 mb-3">
-        <a href="@Url.Action("Index", "HabitEntries")" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-                <h4>Habit Tracker</h4>
-                <p>View & add habit entries</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <a href="@Url.Action("Index", "MoodEntries")" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-                <h4>Mood Tracker</h4>
-                <p>View & add mood entries</p>
+        <a href="@Url.Action("Index", "CalorieLogEntries")" class="text-decoration-none">
+            <div class="card border-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Calories Consumed Today</h5>
+                    <p class="card-text"><strong>@ViewBag.TotalCalories</strong> kcal</p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
             </div>
         </a>
     </div>
 
     <div class="col-md-4 mb-3">
         <a href="@Url.Action("Index", "SleepLogEntries")" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-                <h4>Sleep Tracker</h4>
-                <p>View & add sleep log entries</p>
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Sleep Duration Today</h5>
+                    <p class="card-text"><strong>@ViewBag.TotalSleep</strong> hours</p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
             </div>
         </a>
     </div>
 
     <div class="col-md-4 mb-3">
         <a href="@Url.Action("Index", "WorkoutLogEntries")" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-                <h4>Workout Tracker</h4>
-                <p>View & add workout entries</p>
+            <div class="card border-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Workout Duration Today</h5>
+                    <p class="card-text"><strong>@ViewBag.TotalWorkoutMinutes</strong> min</p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
             </div>
         </a>
     </div>
 
     <div class="col-md-4 mb-3">
-        <a href="@Url.Action("Index", "CalorieLogEntries")" class="text-decoration-none">
-            <div class="card p-3 shadow-sm">
-                <h4>Calorie Tracker</h4>
-                <p>View & add calorie log entries</p>
+        <a href="@Url.Action("Index", "WorkoutLogEntries")" class="text-decoration-none">
+            <div class="card border-danger h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Workout Calories Burned Today</h5>
+                    <p class="card-text"><strong>@ViewBag.TotalWorkoutCalories</strong> kcal</p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <a href="@Url.Action("Index", "HabitEntries")" class="text-decoration-none">
+            <div class="card border-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Habit Progress Today</h5>
+                    <p class="card-text">
+                        @ViewBag.HabitsCompleted / @ViewBag.TotalHabits habits completed
+                    </p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <a href="@Url.Action("Index", "MoodEntries")" class="text-decoration-none">
+            <div class="card border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Mood Today</h5>
+                    <p class="card-text">
+                        @if (ViewBag.MoodRating != null)
+                        {
+                            <span>Mood rating: @ViewBag.MoodRating</span>
+                            @if (ViewBag.MoodNote != null)
+                            {
+                                <br />
+                                <small class="text-muted">"@ViewBag.MoodNote"</small>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No mood recorded for this day</span>
+                        }
+                    </p>
+                    <small class="text-muted">Click here to view tracker</small>
+                </div>
             </div>
         </a>
     </div>

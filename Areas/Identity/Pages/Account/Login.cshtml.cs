@@ -110,12 +110,21 @@ namespace WellnessTracker.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+
+                    // Get the user object by email
+                    var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+
+                    if (user != null && await _signInManager.UserManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        // Redirect admin to Admin index
+                        return LocalRedirect(Url.Content("~/Admin/Index"));
+                    }
+
+                    // Normal user redirect
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -137,5 +146,6 @@ namespace WellnessTracker.Areas.Identity.Pages.Account
             // If we got this far, something failed, redisplay form
             return Page();
         }
+
     }
 }

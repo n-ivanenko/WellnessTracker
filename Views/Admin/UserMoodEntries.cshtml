@@ -1,0 +1,25 @@
+﻿@model IEnumerable<WellnessTracker.Models.MoodEntry>
+
+<h2>User Mood Entries</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Mood</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var mood in Model)
+        {
+            <tr>
+                <td>@mood.Date.ToString("MM/dd/yyyy")</td>
+                <td>@mood.MoodRating</td>
+                <td>
+                    <a asp-action="EditMoodEntry" asp-route-id="@mood.Id">Edit</a> |
+                    <a asp-action="DeleteMoodEntry" asp-route-id="@mood.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
