@@ -14,7 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.SignIn.RequireConfirmedAccount = false;
 })
-.AddRoles<IdentityRole>() // 👈 Add role support
+.AddRoles<IdentityRole>() 
 .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddControllersWithViews(options =>
@@ -78,7 +78,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

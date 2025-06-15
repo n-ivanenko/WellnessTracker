@@ -94,7 +94,6 @@ namespace WellnessTracker.Areas.Identity.Pages.Account
 
             returnUrl ??= Url.Content("~/");
 
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -115,16 +114,13 @@ namespace WellnessTracker.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User logged in.");
 
-                    // Get the user object by email
                     var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
 
                     if (user != null && await _signInManager.UserManager.IsInRoleAsync(user, "Admin"))
                     {
-                        // Redirect admin to Admin index
                         return LocalRedirect(Url.Content("~/Admin/Index"));
                     }
 
-                    // Normal user redirect
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -143,7 +139,6 @@ namespace WellnessTracker.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
 

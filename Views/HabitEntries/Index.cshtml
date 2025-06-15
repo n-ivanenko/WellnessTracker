@@ -1,12 +1,16 @@
 ﻿@model List<WellnessTracker.Models.HabitEntry>
-<h1>Habit Log Entries</h1>
+
 @{
+    ViewData["Title"] = "Habit Log Entries";
     var weekDates = (List<DateTime>)ViewBag.WeekDates;
     var completions = (List<WellnessTracker.Models.HabitCompletion>)ViewBag.Completions;
     int currentOffset = ViewBag.WeekOffset ?? 0;
     var weekStart = weekDates.First();
     var weekEnd = weekDates.Last();
 }
+
+<h1 class="mb-4">Habit Log Entries</h1>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
@@ -24,10 +28,9 @@
     </div>
 </div>
 
-
 <form asp-action="SubmitHabitCompletions" method="post">
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light text-center">
             <tr>
                 <th>Habit</th>
                 @foreach (var day in weekDates)
@@ -48,7 +51,7 @@
                         c.Date.Date == date.Date &&
                         c.IsCompleted);
 
-                        <td>
+                        <td class="text-center">
                             <input type="checkbox"
                                    name="completions"
                                    value="@($"{habit.Id}|{date:yyyy-MM-dd}")"
@@ -60,7 +63,10 @@
         </tbody>
     </table>
 
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
 </form>
-<a asp-controller="HabitEntries" asp-action="Create" class="btn btn-success mb-3">+ Add New Habit</a>
-<a asp-action="All" class="btn btn-outline-primary mb-3">Edit Habits</a>
+
+<div class="mt-4">
+    <a asp-controller="HabitEntries" asp-action="Create" class="btn btn-success me-2">+ Add New Habit</a>
+    <a asp-action="All" class="btn btn-outline-primary">Edit Habits</a>
+</div>

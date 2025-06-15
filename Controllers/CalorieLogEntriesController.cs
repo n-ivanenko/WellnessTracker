@@ -31,7 +31,7 @@ namespace WellnessTracker.Controllers
 
             var totalCalories = _context.CalorieLogEntries
                 .Where(c => c.Date.Date == selectedDate.Date && (userId == null || c.UserId == userId))
-                .Sum(c => (double?)c.Calories) ?? 0; // nullable to avoid exceptions if no results
+                .Sum(c => (double?)c.Calories) ?? 0;
 
             ViewBag.SelectedDate = selectedDate;
             ViewBag.TotalCalories = totalCalories;
@@ -87,7 +87,6 @@ namespace WellnessTracker.Controllers
                 return RedirectToAction("Index", "CalorieLogEntries");
             }
 
-            // Re-fetch recommendation in case the model is invalid
             var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
             if (profile != null)
             {
@@ -111,7 +110,6 @@ namespace WellnessTracker.Controllers
 
             var today = DateTime.Today;
 
-            // Adjust the week based on offset
             var baseDate = today.AddDays(weekOffset * 7);
             var weekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek + (baseDate.DayOfWeek == DayOfWeek.Sunday ? -6 : 1)); // Monday
             var weekEnd = weekStart.AddDays(6);
@@ -154,7 +152,6 @@ namespace WellnessTracker.Controllers
             ViewBag.TodayCalories = todayCalories;
             ViewBag.CaloriesPercentage = (userGoal > 0) ? Math.Min(100, (int)((todayCalories / userGoal) * 100)) : 0;
 
-            // For button logic
             ViewBag.WeekOffset = weekOffset;
 
             return View(filteredEntries);

@@ -21,7 +21,7 @@
     <div class="mb-3">
         <label asp-for="CalorieGoal" class="form-label">Calorie Goal (kcal)</label>
         <input asp-for="CalorieGoal" class="form-control"
-               value="@(Model?.CalorieGoal == 0 && recommended != null ? recommended : Model.CalorieGoal)" />
+               value="@(Model == null || Model.CalorieGoal == 0 ? recommended?.ToString() : Model.CalorieGoal.ToString())" />
         <span asp-validation-for="CalorieGoal" class="text-danger"></span>
     </div>
 

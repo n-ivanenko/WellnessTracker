@@ -5,7 +5,7 @@
     var recommended = ViewBag.RecommendedSleep as int?;
 }
 
-<h2>Set Your Sleep Goal</h2>
+<h2 class="mb-4">Set Your Sleep Goal</h2>
 
 @if (recommended != null)
 {
@@ -14,9 +14,9 @@
     </div>
 }
 
-<form asp-action="SetGoal" method="post">
-    <div class="form-group">
-        <label asp-for="SleepGoal"></label>
+<form asp-action="SetGoal" method="post" style="max-width: 400px;">
+    <div class="mb-3">
+        <label asp-for="SleepGoal" class="form-label"></label>
         <input asp-for="SleepGoal" class="form-control" />
         <span asp-validation-for="SleepGoal" class="text-danger"></span>
     </div>

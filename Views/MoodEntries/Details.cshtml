@@ -1,36 +1,38 @@
 ﻿@model WellnessTracker.Models.MoodEntry
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Mood Entry Details";
 }
 
-<h1>Details</h1>
+<h1 class="mb-4">Mood Entry Details</h1>
 
-<div>
-    <h4>MoodEntry</h4>
-    <hr />
+<div class="card p-4 mb-3">
+    <h4 class="mb-3">MoodEntry</h4>
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-3 fw-semibold">
             @Html.DisplayNameFor(model => model.Date)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-9">
             @Html.DisplayFor(model => model.Date)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-3 fw-semibold">
             @Html.DisplayNameFor(model => model.MoodRating)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-9">
             @Html.DisplayFor(model => model.MoodRating)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-3 fw-semibold">
             @Html.DisplayNameFor(model => model.Notes)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-9">
             @Html.DisplayFor(model => model.Notes)
         </dd>
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary me-2">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

@@ -28,12 +28,10 @@ namespace WellnessTracker.Controllers
 
             var selectedDate = date ?? DateTime.Today;
 
-            // Get user profile
             var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == userId);
             ViewBag.UserProfile = profile;
             ViewBag.SelectedDate = selectedDate.ToString("yyyy-MM-dd");
 
-            // Calculate recommended goals
             if (profile != null)
             {
                 double weightKg = profile.WeightLb * 0.453592;
@@ -54,7 +52,6 @@ namespace WellnessTracker.Controllers
                 ViewBag.RecommendedWorkout = null;
             }
 
-            // Get daily stats
             var totalCalories = await _context.CalorieLogEntries
                 .Where(c => c.UserId == userId && c.Date.Date == selectedDate)
                 .SumAsync(c => (double?)c.Calories) ?? 0;
@@ -67,15 +64,14 @@ namespace WellnessTracker.Controllers
                 .Where(w => w.UserId == userId && w.Date.Date == selectedDate)
                 .ToListAsync();
 
-            double totalWorkoutHours = workouts.Sum(w => w.Duration); // Assuming Duration is double (in minutes)
+            double totalWorkoutHours = workouts.Sum(w => w.Duration);
             double totalWorkoutCalories = workouts.Sum(w => w.CaloriesBurned);
 
             ViewBag.TotalCalories = totalCalories;
             ViewBag.TotalSleep = totalSleep;
-            ViewBag.TotalWorkoutHours = totalWorkoutHours;
+            ViewBag.TotalWorkoutMinutes = totalWorkoutHours;
             ViewBag.TotalWorkoutCalories = totalWorkoutCalories;
 
-            // Get user goals
             var userGoals = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
             if (userGoals != null)
@@ -96,7 +92,6 @@ namespace WellnessTracker.Controllers
                 ViewBag.CaloriesStatus = ViewBag.SleepStatus = ViewBag.WorkoutStatus = "No Goal Set";
             }
 
-            // Habit tracking progress
             var allHabits = await _context.HabitEntries
                 .Where(h => h.UserId == userId)
                 .ToListAsync();
@@ -104,7 +99,7 @@ namespace WellnessTracker.Controllers
 
             var todayCompletions = await _context.HabitCompletions
                 .Where(c => c.UserId == userId && c.Date.Date == selectedDate)
-                .Select(c => c.HabitEntryId)  // Assuming HabitCompletions links to HabitEntryId
+                .Select(c => c.HabitEntryId)
                 .Distinct()
                 .ToListAsync();
             int completedHabits = todayCompletions.Count;
@@ -112,7 +107,6 @@ namespace WellnessTracker.Controllers
             ViewBag.TotalHabits = totalHabits;
             ViewBag.HabitsCompleted = completedHabits;
 
-            // Get mood for selected day
             var moodEntry = await _context.MoodEntries
                 .Where(m => m.UserId == userId && m.Date.Date == selectedDate)
                 .FirstOrDefaultAsync();

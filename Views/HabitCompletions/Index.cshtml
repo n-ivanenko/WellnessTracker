@@ -7,34 +7,40 @@
     var weekEnd = weekDates.Last();
 }
 
-<h2>Weekly Habit Tracker</h2>
+<h2 class="mb-4">Weekly Habit Tracker</h2>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="fs-5 fw-semibold">
+        Week: <span class="text-primary">@weekStart.ToString("MMM dd")</span> - <span class="text-primary">@weekEnd.ToString("MMM dd")</span>
     </div>
     <div>
-        <a class="btn btn-outline-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+        <a class="btn btn-outline-primary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">
+            &larr; Previous Week
+        </a>
         @if (weekEnd < DateTime.Today)
         {
-            <a class="btn btn-outline-secondary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+            <a class="btn btn-outline-primary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">
+                Next Week &rarr;
+            </a>
         }
         else
         {
-            <button class="btn btn-outline-secondary" disabled>Next Week →</button>
+            <button class="btn btn-outline-secondary" disabled>Next Week &rarr;</button>
         }
     </div>
 </div>
 
-
-<form asp-action="SubmitHabitCompletions" method="post">
-    <table class="table table-bordered">
-        <thead>
+<form asp-action="SubmitHabitCompletions" method="post" class="mb-5">
+    <table class="table table-hover table-bordered align-middle text-center">
+        <thead class="table-light">
             <tr>
-                <th>Habit</th>
+                <th scope="col" style="min-width: 150px;">Habit</th>
                 @foreach (var day in weekDates)
                 {
-                    <th>@Html.Raw(day.ToString("ddd<br>MM/dd"))</th>
+                    <th scope="col" style="min-width: 80px;">
+                        <div class="small fw-semibold text-nowrap">@day.ToString("ddd")</div>
+                        <div class="text-muted small">@day.ToString("MM/dd")</div>
+                    </th>
                 }
             </tr>
         </thead>
@@ -42,7 +48,7 @@
             @foreach (var habit in Model)
             {
                 <tr>
-                    <td>@habit.HabitName</td>
+                    <td class="text-start fw-medium">@habit.HabitName</td>
                     @foreach (var date in weekDates)
                     {
                         var completed = completions.Any(c =>
@@ -52,6 +58,7 @@
 
                         <td>
                             <input type="checkbox"
+                                   id="chk-@habit.Id-@date.ToString("yyyyMMdd")"
                                    name="completions"
                                    value="@($"{habit.Id}|{date:yyyy-MM-dd}")"
                             @(completed ? "checked" : "") />
@@ -62,8 +69,14 @@
         </tbody>
     </table>
 
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-success px-4">Save Changes</button>
 </form>
 
-<a asp-controller="HabitEntries" asp-action="Create" class="btn btn-success mb-3">+ Add New Habit</a>
-<a asp-action="All" class="btn btn-outline-primary mb-3">Edit Habits</a>
+<div class="d-flex gap-2">
+    <a asp-controller="HabitEntries" asp-action="Create" class="btn btn-primary">
+        + Add New Habit
+    </a>
+    <a asp-action="All" class="btn btn-outline-secondary">
+        Manage Habits
+    </a>
+</div>

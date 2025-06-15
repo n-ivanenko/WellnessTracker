@@ -1,19 +1,25 @@
 ﻿@{
     ViewData["Title"] = "Workout Summary";
     var selectedDate = ((DateTime)ViewBag.SelectedDate).ToString("yyyy-MM-dd");
-    var totalHours = ViewBag.TotalWorkoutHours;
-    var totalCalories = ViewBag.TotalCaloriesBurned;
+    var totalHours = ViewBag.TotalWorkoutHours ?? 0;
+    var totalCalories = ViewBag.TotalCaloriesBurned ?? 0;
 }
 
-<h2>Workout Summary for @selectedDate</h2>
+<h2 class="mb-4">Workout Summary for <strong>@selectedDate</strong></h2>
 
-<div class="alert alert-primary">
+<div class="alert alert-primary fs-5">
     <p><strong>Total Hours Worked Out:</strong> @totalHours</p>
-    <p><strong>Total Calories Burned:</strong> @totalCalories</p>
+    <p><strong>Total Calories Burned:</strong> @totalCalories kcal</p>
 </div>
 
-<form method="get">
-    <label for="date">Choose a date:</label>
-    <input type="date" name="date" id="date" value="@selectedDate" />
-    <button type="submit" class="btn btn-outline-primary">View</button>
+<form method="get" class="row g-3 align-items-center mb-5">
+    <div class="col-auto">
+        <label for="date" class="col-form-label fw-semibold">Choose a date:</label>
+    </div>
+    <div class="col-auto">
+        <input type="date" name="date" id="date" class="form-control" value="@selectedDate" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">View</button>
+    </div>
 </form>

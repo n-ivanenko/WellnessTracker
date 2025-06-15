@@ -1,53 +1,39 @@
-﻿@model IEnumerable<UserProfile>
+﻿@model IEnumerable<WellnessTracker.Models.UserProfile>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "User Profiles";
 }
 
-<h1>Index</h1>
+<h1>User Profiles</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Create New Profile</a>
 </p>
-<table class="table">
-    <thead>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-light">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Age)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HeightIn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.WeightLb)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.First().UserId)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Age)</th>
+            <th>@Html.DisplayNameFor(model => model.First().HeightIn)</th>
+            <th>@Html.DisplayNameFor(model => model.First().WeightLb)</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Age)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HeightIn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.WeightLb)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td>@Html.DisplayFor(modelItem => item.Age)</td>
+                <td>@Html.DisplayFor(modelItem => item.HeightIn)</td>
+                <td>@Html.DisplayFor(modelItem => item.WeightLb)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary me-1">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

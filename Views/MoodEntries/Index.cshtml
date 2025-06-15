@@ -1,118 +1,150 @@
 ﻿@model IEnumerable<WellnessTracker.Models.MoodEntry>
 
 @{
-    ViewData["Title"] = "Index";
-}
-@{
+    ViewData["Title"] = "Mood Entries";
     int currentOffset = ViewBag.WeekOffset ?? 0;
     DateTime startOfWeek = ViewBag.StartOfWeek ?? DateTime.Today;
     DateTime endOfWeek = ViewBag.EndOfWeek ?? DateTime.Today;
 }
 
-<h1>Mood Entries</h1>
+<h1 class="mb-4">Mood Entries</h1>
 
-<h3>Mood Trend</h3>
-<div class="d-flex align-items-center mb-2">
-    <a class="btn btn-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
+<div class="d-flex align-items-center mb-3">
+    <a class="btn btn-outline-primary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
 
     @if (endOfWeek < DateTime.Today)
     {
-        <a class="btn btn-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+        <a class="btn btn-outline-primary me-3" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
     }
     else
     {
-        <button class="btn btn-secondary me-2" disabled>Next Week →</button>
+        <button class="btn btn-outline-secondary me-3" disabled>Next Week →</button>
     }
 
-    <span id="weekLabel" class="fw-bold">Week of @startOfWeek.ToString("MM/dd/yyyy") to @endOfWeek.ToString("MM/dd/yyyy")</span>
+    <h5 class="mb-0 text-primary fw-bold">
+        Week of @startOfWeek.ToString("MMM dd, yyyy") to @endOfWeek.ToString("MMM dd, yyyy")
+    </h5>
 </div>
 
-<canvas id="moodChart" height="100"></canvas>
-<div class="mood-legend mb-3">
-    <h5>Mood Color Legend</h5>
-    <ul style="list-style: none; padding-left: 0;">
-        <li><span style="color: blue; font-weight: bold;">&#9632;</span> 9-10: Great</li>
-        <li><span style="color: green; font-weight: bold;">&#9632;</span> 7-8: Good</li>
-        <li><span style="color: goldenrod; font-weight: bold;">&#9632;</span> 5-6: Okay</li>
-        <li><span style="color: orange; font-weight: bold;">&#9632;</span> 3-4: Bad</li>
-        <li><span style="color: red; font-weight: bold;">&#9632;</span> 1-2: Worst</li>
-    </ul>
+<div class="mb-4">
+    <h4 class="text-secondary mb-3">Mood Trend</h4>
+    <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="moodChart"></canvas>
+    </div>
+    <div class="mt-3">
+        <h5>Mood Color Legend</h5>
+        <ul class="list-inline">
+            <li class="list-inline-item me-4"><span style="color: blue; font-weight: bold;">&#9632;</span> 9-10: Great</li>
+            <li class="list-inline-item me-4"><span style="color: green; font-weight: bold;">&#9632;</span> 7-8: Good</li>
+            <li class="list-inline-item me-4"><span style="color: goldenrod; font-weight: bold;">&#9632;</span> 5-6: Okay</li>
+            <li class="list-inline-item me-4"><span style="color: orange; font-weight: bold;">&#9632;</span> 3-4: Bad</li>
+            <li class="list-inline-item"><span style="color: red; font-weight: bold;">&#9632;</span> 1-2: Worst</li>
+        </ul>
+    </div>
 </div>
-<hr />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<div class="mb-3">
+    <a asp-action="Create" class="btn btn-success">+ Add New Mood Entry</a>
+</div>
 
-<table class="table">
-    <thead>
+<table class="table table-hover table-striped align-middle">
+    <thead class="table-dark">
         <tr>
             <th>@Html.DisplayNameFor(model => model.Date)</th>
             <th>@Html.DisplayNameFor(model => model.MoodRating)</th>
             <th>@Html.DisplayNameFor(model => model.Notes)</th>
-            <th></th>
+            <th style="width: 160px;">Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @if (!Model.Any())
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Date)</td>
-                <td>@Html.DisplayFor(modelItem => item.MoodRating)</td>
-                <td>@Html.DisplayFor(modelItem => item.Notes)</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <td colspan="4" class="text-center text-muted fst-italic">No mood entries found for this week.</td>
             </tr>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                    <td>
+                        <span class="badge
+                            @(item.MoodRating >= 9 ? "bg-primary" :
+                              item.MoodRating >= 7 ? "bg-success" :
+                              item.MoodRating >= 5 ? "bg-warning text-dark" :
+                              item.MoodRating >= 3 ? "bg-orange text-dark" : "bg-danger")">
+                            @item.MoodRating
+                        </span>
+                    </td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Notes) ? " " : item.Notes)</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary me-1">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<canvas id="moodChart" width="400" height="200"></canvas>
-<script>
-    let weekOffset = @(ViewBag.WeekOffset ?? 0);
-    let chart;
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let weekOffset = @(ViewBag.WeekOffset ?? 0);
+        let chart;
 
-    function loadMoodChart() {
-        console.log("Loading chart for weekOffset:", weekOffset);
+        function loadMoodChart() {
+            fetch(`/MoodEntries/MoodGraphData?weekOffset=${weekOffset}`)
+                .then(r => r.json())
+                .then(data => {
+                    const labels = data.map(x => {
+                        const d = new Date(x.date);
+                        return d.toLocaleDateString(undefined, { weekday: 'short', month: 'numeric', day: 'numeric' });
+                    });
+                    const values = data.map(x => x.moodRating);
+                    const colors = values.map(v => v >= 9 ? "blue" : v >= 7 ? "green" : v >= 5 ? "goldenrod" : v >= 3 ? "orange" : "red");
 
-        fetch(`/MoodEntries/MoodGraphData?weekOffset=${weekOffset}`)
-            .then(r => r.json())
-            .then(data => {
-                console.log("Received data:", data);
+                    if (chart) chart.destroy();
 
-                const labels = data.map(x => x.date);
-                const values = data.map(x => x.moodRating);
-                const colors = values.map(v => v >= 9 ? "blue" : v >= 7 ? "green" : v >= 5 ? "goldenrod" : v >= 3 ? "orange" : "red");
-
-                if (chart) chart.destroy();
-
-                const ctx = document.getElementById('moodChart').getContext('2d');
-                chart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'Mood Rating',
-                            data: values,
-                            backgroundColor: colors
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 10
+                    const ctx = document.getElementById('moodChart').getContext('2d');
+                    chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Mood Rating',
+                                data: values,
+                                backgroundColor: colors
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 10
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `Mood: ${context.parsed.y}`;
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                });
-            })
-            .catch(err => console.error("Fetch error:", err));
-    }
+                    });
+                })
+                .catch(err => console.error("Fetch error:", err));
+        }
 
-    loadMoodChart();
-</script>
+        loadMoodChart();
+    </script>
+}

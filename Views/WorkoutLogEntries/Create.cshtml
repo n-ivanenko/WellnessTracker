@@ -1,10 +1,10 @@
 ﻿@model WellnessTracker.Models.WorkoutLogEntry
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Workout Entry";
 }
 
-<h1>Create</h1>
+<h1>Create Workout Entry</h1>
 
 <h4>WorkoutEntry</h4>
 <hr />
@@ -12,29 +12,29 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Date" class="form-label"></label>
-                <input asp-for="Date" class="form-control" type="date" />
+                <input asp-for="Date" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="ExerciseName" class="control-label"></label>
                 <input asp-for="ExerciseName" class="form-control" />
                 <span asp-validation-for="ExerciseName" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Duration" class="control-label"></label>
                 <input asp-for="Duration" class="form-control" />
                 <span asp-validation-for="Duration" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="CaloriesBurned" class="control-label"></label>
                 <input asp-for="CaloriesBurned" class="form-control" />
                 <span asp-validation-for="CaloriesBurned" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Notes" class="control-label"></label>
-                <input asp-for="Notes" class="form-control" />
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -44,10 +44,12 @@
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

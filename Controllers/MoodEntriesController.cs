@@ -39,7 +39,7 @@ namespace WellnessTracker.Controllers
                 .OrderBy(m => m.Date)
                 .Select(m => new
                 {
-                    date = m.Date.ToString("MM/dd"),
+                    date = m.Date,
                     moodRating = m.MoodRating
                 })
                 .ToListAsync();

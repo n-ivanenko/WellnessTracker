@@ -1,43 +1,48 @@
 ﻿@model WellnessTracker.Models.MoodEntry
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Mood Entry";
 }
 
-<h1>Create</h1>
+<h1 class="mb-4">Create Mood Entry</h1>
 
-<h4>MoodEntry</h4>
+<h4 class="mb-3">New Entry</h4>
 <hr />
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
                 <label asp-for="Date" class="form-label"></label>
-                <input asp-for="Date" class="form-control" type="date" />
+                <input asp-for="Date" type="date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MoodRating" class="control-label"></label>
-                <input asp-for="MoodRating" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="MoodRating" class="form-label"></label>
+                <input asp-for="MoodRating" type="number" min="1" max="10" class="form-control" />
                 <span asp-validation-for="MoodRating" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
                 <input asp-for="Notes" class="form-control" />
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

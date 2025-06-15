@@ -1,42 +1,44 @@
 ﻿@model WellnessTracker.Models.HabitCompletion
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Habit Completion";
 }
 
-<h1>Create</h1>
+<h1 class="mb-4">Create Habit Completion</h1>
 
-<h4>HabitCompletion</h4>
+<h4 class="mb-3">Habit Completion Details</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6 col-lg-4">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="HabitEntryId" class="control-label"></label>
-                <select asp-for="HabitEntryId" class ="form-control" asp-items="ViewBag.HabitEntryId"></select>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="HabitEntryId" class="form-label"></label>
+                <select asp-for="HabitEntryId" class="form-select" asp-items="ViewBag.HabitEntryId"></select>
+                <span asp-validation-for="HabitEntryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="mb-3">
                 <label asp-for="Date" class="form-label"></label>
-                <input asp-for="Date" class="form-control" type="date" />
+                <input asp-for="Date" type="date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsCompleted" /> @Html.DisplayNameFor(model => model.IsCompleted)
-                </label>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsCompleted" class="form-check-input" />
+                <label asp-for="IsCompleted" class="form-check-label"></label>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

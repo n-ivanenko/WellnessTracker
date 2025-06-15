@@ -4,12 +4,22 @@
     var selectedDate = ((DateTime)ViewBag.SelectedDate).ToString("yyyy-MM-dd");
 }
 
-<h2>Sleep Summary for @selectedDate</h2>
+<h2 class="mb-4">Sleep Summary for @selectedDate</h2>
 
-<p>Total Sleep: <strong>@totalSleep</strong> hours</p>
+<div class="mb-4 p-3 border rounded bg-light" style="max-width: 400px;">
+    <p class="fs-5">
+        Total Sleep: <strong>@totalSleep hours</strong>
+    </p>
+</div>
 
-<form method="get">
-    <label for="date">Choose a date:</label>
-    <input type="date" name="date" id="date" value="@selectedDate" />
-    <button type="submit">View</button>
+<form method="get" class="row g-3 align-items-center" style="max-width: 400px;">
+    <div class="col-auto">
+        <label for="date" class="col-form-label">Choose a date:</label>
+    </div>
+    <div class="col-auto">
+        <input type="date" name="date" id="date" class="form-control" value="@selectedDate" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">View</button>
+    </div>
 </form>

@@ -1,12 +1,7 @@
 ﻿@model IEnumerable<WellnessTracker.Models.CalorieLogEntry>
 
-
 @{
-    ViewData["Title"] = "Index";
-}
-<h1>Calorie Log Entries</h1>
-
-@{
+    ViewData["Title"] = "Calorie Tracker";
     var goal = ViewBag.CalorieGoal as double?;
     var consumed = ViewBag.TodayCalories as double?;
     var percentage = ViewBag.CaloriesPercentage as int? ?? 0;
@@ -14,135 +9,146 @@
 
     var weekStart = DateTime.Today.AddDays(currentOffset * 7).AddDays(-(int)DateTime.Today.DayOfWeek + (DateTime.Today.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
     var weekEnd = weekStart.AddDays(6);
-
 }
 
-@if (goal.HasValue)
-{
-    <div class="mb-4">
-        <h4>Today's Calorie Progress (@DateTime.Today.ToString("MMMM dd"))</h4>
-        <a asp-controller="CalorieLogEntries" asp-action="SetGoal" class="btn btn-sm btn-outline-primary ms-2">Edit Goal</a>
-        <p><strong>Goal:</strong> @goal.Value</p>
-        <p><strong>Consumed:</strong> @consumed</p>
+<h1 class="mb-4 text-primary"><i class="bi bi-fire me-2"></i>Calorie Tracker</h1>
 
-        <div class="progress" style="height: 25px;">
-            <div class="progress-bar @(percentage < 100 ? "bg-info" : "bg-success")"
-                 role="progressbar"
-                 style="width: @percentage%"
-                 aria-valuenow="@percentage"
-                 aria-valuemin="0"
-                 aria-valuemax="100">
-                @percentage%
-            </div>
-        </div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="bi bi-speedometer2 me-2"></i>Today's Progress - @DateTime.Today.ToString("MMMM dd")
+        <a asp-controller="CalorieLogEntries" asp-action="SetGoal" class="btn btn-sm btn-outline-light float-end">Edit Goal</a>
     </div>
-}
-else
-{
-    <div class="alert alert-warning">
-        You haven't set a calorie goal yet. <a asp-controller="CalorieLogEntries" asp-action="SetGoal">Set your goal</a>.
-    </div>
-}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <strong>Week:</strong> @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
-    </div>
-    <div>
-        <a class="btn btn-outline-secondary me-2" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous Week</a>
-        @if (weekEnd < DateTime.Today)
+    <div class="card-body">
+        @if (goal.HasValue)
         {
-            <a class="btn btn-outline-secondary" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next Week →</a>
+            <p><strong>Goal:</strong> @goal.Value kcal</p>
+            <p><strong>Consumed:</strong> @consumed kcal</p>
+
+            <div class="progress" style="height: 25px;">
+                <div class="progress-bar @(percentage < 100 ? "bg-info" : "bg-success")"
+                     role="progressbar"
+                     style="width: @percentage%"
+                     aria-valuenow="@percentage"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    @percentage%
+                </div>
+            </div>
         }
         else
         {
-            <button class="btn btn-outline-secondary" disabled>Next Week →</button>
+            <div class="alert alert-warning mt-2">
+                You haven't set a calorie goal yet. <a asp-controller="CalorieLogEntries" asp-action="SetGoal" class="alert-link">Set your goal</a>.
+            </div>
         }
     </div>
 </div>
-<h4>This Week's Calorie Breakdown</h4>
-<table class="table table-bordered w-50">
-    <thead>
-        <tr>
-            @foreach (var day in ((IDictionary<string, double>)ViewBag.WeeklyCalories).Keys)
-            {
-                <th>@day</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            @foreach (var calories in ((IDictionary<string, double>)ViewBag.WeeklyCalories).Values)
-            {
-                <td>@calories</td>
-            }
-        </tr>
-    </tbody>
-</table>
 
-<div class="alert alert-info">
-    <strong>Weekly Calorie Average:</strong> @ViewBag.WeeklyAverageCalories.ToString("0.##") kcal
-    @if (ViewBag.CalorieGoal != null)
-    {
-        <span>
-            (
-            @if (ViewBag.WeeklyAverageCalories >= ViewBag.CalorieGoal)
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white">
+        <i class="bi bi-calendar-week me-2"></i>This Week: @weekStart.ToString("MMM dd") - @weekEnd.ToString("MMM dd")
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index", new { weekOffset = currentOffset - 1 })">← Previous</a>
+                @if (weekEnd < DateTime.Today)
+                {
+                    <a class="btn btn-outline-secondary btn-sm ms-2" href="@Url.Action("Index", new { weekOffset = currentOffset + 1 })">Next →</a>
+                }
+                else
+                {
+                    <button class="btn btn-outline-secondary btn-sm ms-2" disabled>Next →</button>
+                }
+            </div>
+        </div>
+
+        <table class="table table-bordered text-center table-sm w-100">
+            <thead class="table-light">
+                <tr>
+                    @foreach (var day in ((IDictionary<string, double>)ViewBag.WeeklyCalories).Keys)
+                    {
+                        <th>@day</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    @foreach (var calories in ((IDictionary<string, double>)ViewBag.WeeklyCalories).Values)
+                    {
+                        <td>@calories</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert alert-info mt-3">
+            <strong>Weekly Average:</strong> @ViewBag.WeeklyAverageCalories.ToString("0.##") kcal
+            @if (goal.HasValue)
             {
-                <span class="text-success">Above Goal</span>
+                <span>
+                    (
+                    @if (ViewBag.WeeklyAverageCalories >= ViewBag.CalorieGoal)
+                    {
+                        <span class="text-success">Above Goal</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning">Below Goal</span>
+                    }
+                    )
+                </span>
             }
-            else
-            {
-                <span class="text-warning">Below Goal</span>
-            }
-            )
-        </span>
-    }
+        </div>
+    </div>
 </div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New Entry</a>
-    <a href="@Url.Action("CalorieSummary", "CalorieLogEntries")" class="btn btn-secondary">
-        View Calorie Summary
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a asp-action="Create" class="btn btn-outline-primary">
+        <i class="bi bi-plus-circle me-1"></i>New Entry
     </a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FoodItem)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Calories)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @item.Date.ToString("yyyy-MM-dd")
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FoodItem)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Calories)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <a href="@Url.Action("CalorieSummary", "CalorieLogEntries")" class="btn btn-outline-secondary">
+        <i class="bi bi-graph-up me-1"></i>View Summary
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-light fw-bold">
+        <i class="bi bi-journal-text me-2"></i>Log Entries
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-secondary">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.First().Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.First().FoodItem)</th>
+                    <th>@Html.DisplayNameFor(model => model.First().Calories)</th>
+                    <th>@Html.DisplayNameFor(model => model.First().Notes)</th>
+                    <th style="width: 150px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                        <td>@Html.DisplayFor(modelItem => item.FoodItem)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Calories)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Notes)</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">Edit</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">Details</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer class="text-center text-muted mt-5">
+    <small>&copy; 2025 Wellness Tracker</small>
+</footer>

@@ -1,44 +1,46 @@
 ﻿@model WellnessTracker.Models.MoodEntry
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Mood Entry";
 }
 
-<h1>Edit</h1>
+<h1 class="mb-4">Edit Mood Entry</h1>
 
-<h4>MoodEntry</h4>
+<h4 class="mb-3">MoodEntry Details</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="col-md-5 col-lg-4">
+        <form asp-action="Edit" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label"></label>
+                <input asp-for="Date" type="date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MoodRating" class="control-label"></label>
-                <input asp-for="MoodRating" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="MoodRating" class="form-label"></label>
+                <input asp-for="MoodRating" type="number" min="1" max="10" step="1" class="form-control" />
+                <small class="form-text text-muted">Enter a value between 1 and 10</small>
                 <span asp-validation-for="MoodRating" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
-                <input asp-for="Notes" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" rows="3" class="form-control"></textarea>
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

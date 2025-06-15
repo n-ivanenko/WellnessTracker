@@ -20,8 +20,6 @@ namespace WellnessTracker.Controllers
             _userManager = userManager;
             _context = context;
         }
-
-        // List all users
         public async Task<IActionResult> Index()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -29,7 +27,6 @@ namespace WellnessTracker.Controllers
 
             foreach (var user in users)
             {
-                // Skip users in the Admin role
                 if (await _userManager.IsInRoleAsync(user, "Admin"))
                 {
                     continue;
@@ -58,8 +55,6 @@ namespace WellnessTracker.Controllers
 
             return View(model);
         }
-
-        // View user details + profile + related entries
         public async Task<IActionResult> Details(string id)
         {
             if (id == null) return NotFound();
@@ -69,7 +64,6 @@ namespace WellnessTracker.Controllers
 
             var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == user.Id);
 
-            // Load related entries if needed (example for calorie logs)
             var calorieLogs = await _context.CalorieLogEntries
                 .Where(c => c.UserId == user.Id)
                 .ToListAsync();
@@ -92,11 +86,11 @@ namespace WellnessTracker.Controllers
                 HabitCompletions = habitCompletions
             };
 
-
             return View(model);
         }
 
         // Edit User email and username
+
         [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
@@ -167,6 +161,7 @@ namespace WellnessTracker.Controllers
         }
 
         // Delete User
+
         [HttpGet]
         public async Task<IActionResult> Delete(string id)
         {
@@ -175,7 +170,7 @@ namespace WellnessTracker.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            return View(user); // optional confirmation view
+            return View(user); 
         }
 
 
@@ -186,11 +181,9 @@ namespace WellnessTracker.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Delete related profile data
             var profile = await _context.UserProfile.FirstOrDefaultAsync(p => p.UserId == id);
             if (profile != null) _context.UserProfile.Remove(profile);
 
-            // Delete related logs if needed
             var moodLogs = _context.MoodEntries.Where(e => e.UserId == id);
             _context.MoodEntries.RemoveRange(moodLogs);
 
@@ -206,16 +199,15 @@ namespace WellnessTracker.Controllers
             var habitLogs = _context.HabitEntries.Where(e => e.UserId == id);
             _context.HabitEntries.RemoveRange(habitLogs);
 
-            // Save changes to remove all related data
             await _context.SaveChangesAsync();
 
-            // Now delete the user from Identity
             await _userManager.DeleteAsync(user);
 
             return RedirectToAction("Index");
         }
 
         // Mood Entries
+
         [HttpGet("Admin/UserMoodEntries/{userId}")]
         public async Task<IActionResult> UserMoodEntries(string userId)
         {
@@ -292,6 +284,7 @@ namespace WellnessTracker.Controllers
         }
 
         // Calorie Entries
+
         [HttpGet("Admin/UserCalorieEntries/{userId}")]
         public async Task<IActionResult> UserCalorieEntries(string userId)
         {
@@ -352,6 +345,7 @@ namespace WellnessTracker.Controllers
         }
 
         // Sleep Entries
+
         [HttpGet("Admin/UserSleepEntries/{userId}")]
         public async Task<IActionResult> UserSleepEntries(string userId)
         {
@@ -412,6 +406,7 @@ namespace WellnessTracker.Controllers
         }
 
         // Workout Entries
+
         [HttpGet("Admin/UserWorkoutEntries/{userId}")]
         public async Task<IActionResult> UserWorkoutEntries(string userId)
         {
@@ -472,6 +467,7 @@ namespace WellnessTracker.Controllers
         }
 
         // Habit entries
+
         [HttpGet("Admin/UserHabits/{userId}")]
         public async Task<IActionResult> UserHabits(string userId)
         {

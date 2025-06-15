@@ -1,54 +1,55 @@
 ﻿@model WellnessTracker.Models.CalorieLogEntry
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Calorie Entry";
 }
 
-<h1>Edit</h1>
+<h1 class="mb-4 text-primary"><i class="bi bi-pencil-square me-2"></i>Edit Calorie Entry</h1>
 
-<h4>CalorieLogEntry</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow-sm">
+    <div class="card-body">
         <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Date" class="form-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label fw-bold"></label>
                 <input asp-for="Date" class="form-control" type="date" />
-                <span asp-validation-for="Date" class="text-danger"></span>
+                <span asp-validation-for="Date" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="FoodItem" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="FoodItem" class="form-label fw-bold"></label>
                 <input asp-for="FoodItem" class="form-control" />
-                <span asp-validation-for="FoodItem" class="text-danger"></span>
+                <span asp-validation-for="FoodItem" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Calories" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Calories" class="form-label fw-bold"></label>
                 <input asp-for="Calories" class="form-control" />
-                <span asp-validation-for="Calories" class="text-danger"></span>
+                <span asp-validation-for="Calories" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label fw-bold"></label>
                 <input asp-for="Notes" class="form-control" />
-                <span asp-validation-for="Notes" class="text-danger"></span>
+                <span asp-validation-for="Notes" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>Save
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to List
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

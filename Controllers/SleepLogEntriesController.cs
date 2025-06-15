@@ -43,7 +43,6 @@ namespace WellnessTracker.Controllers
             return View();
         }
 
-        // GET: Show sleep goal setting page
         [HttpGet]
         public async Task<IActionResult> SetGoal()
             {

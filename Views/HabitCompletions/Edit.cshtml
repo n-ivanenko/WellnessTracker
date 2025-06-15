@@ -1,44 +1,47 @@
 ﻿@model WellnessTracker.Models.HabitCompletion
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Habit Completion";
 }
 
-<h1>Edit</h1>
+<h1 class="mb-4">Edit Habit Completion</h1>
 
-<h4>HabitCompletion</h4>
+<h4 class="mb-3">HabitCompletion Details</h4>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="col-md-6 col-lg-4">
+        <form asp-action="Edit" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="HabitEntryId" class="control-label"></label>
-                <select asp-for="HabitEntryId" class="form-control" asp-items="ViewBag.HabitEntryId"></select>
+
+            <div class="mb-3">
+                <label asp-for="HabitEntryId" class="form-label"></label>
+                <select asp-for="HabitEntryId" class="form-select" asp-items="ViewBag.HabitEntryId"></select>
                 <span asp-validation-for="HabitEntryId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label"></label>
+                <input asp-for="Date" class="form-control" type="date" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsCompleted" /> @Html.DisplayNameFor(model => model.IsCompleted)
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" asp-for="IsCompleted" type="checkbox" id="IsCompleted" />
+                <label class="form-check-label" for="IsCompleted">
+                    @Html.DisplayNameFor(model => model.IsCompleted)
                 </label>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary px-4">Save</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

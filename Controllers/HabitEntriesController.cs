@@ -64,7 +64,6 @@ namespace WellnessTracker.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Parse the submitted completions (habitId|date)
             var submitted = completions
                 .Select(c => c.Split('|'))
                 .Select(parts => new
@@ -74,7 +73,6 @@ namespace WellnessTracker.Controllers
                 })
                 .ToList();
 
-            // Get all habits for the current user for the current week
             DateTime startOfWeek = DateTime.Today;
             while (startOfWeek.DayOfWeek != DayOfWeek.Monday)
             {
