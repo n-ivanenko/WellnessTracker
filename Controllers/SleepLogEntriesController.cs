@@ -115,8 +115,10 @@ namespace WellnessTracker.Controllers
                 .Where(s => s.UserId == userId && s.Date.Date == today)
                 .SumAsync(s => (double?)s.HoursSlept) ?? 0;
 
-            var userGoal = await _context.UserGoals.FirstOrDefaultAsync(g => g.UserId == userId);
-            var sleepGoal = userGoal?.SleepGoal ?? 0;
+            var userGoal = await _context.UserGoals
+                .Where(g => g.UserId == userId)
+                .Select(g => g.SleepGoal)
+                .FirstOrDefaultAsync();
 
 
             var weekEntries = entries
@@ -137,13 +139,14 @@ namespace WellnessTracker.Controllers
                 var label = date.ToString("ddd");
                 weeklySleep[label] = weekEntries.ContainsKey(date) ? weekEntries[date] : 0;
             }
+            var sleepPercentage = (userGoal > 0) ? Math.Min(100, (int)((todaySleep / userGoal) * 100)) : 0;
 
             ViewBag.WeekOffset = weekOffset;
             ViewBag.WeeklySleep = weeklySleep;
             ViewBag.WeeklyAverageSleep = weeklyAverage;
             ViewBag.TodaySleep = todaySleep;
-            ViewBag.SleepPercentage = (userGoal.SleepGoal > 0) ? Math.Min(100, (int)((todaySleep / userGoal.SleepGoal) * 100)) : 0;
-            ViewBag.SleepGoal = sleepGoal;
+            ViewBag.SleepPercentage = sleepPercentage;
+            ViewBag.SleepGoal = userGoal;
 
             return View(entries);
         }
